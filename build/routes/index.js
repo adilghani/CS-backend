@@ -514,6 +514,8 @@ routes.post("/admin-login", (req, res) => {
   }).catch(err => console.log(err));
 });
 routes.get("/nft-collector", (req, res) => {
+  console.log("running");
+
   var nftdata = _models.default.nftControllerModel.find();
 
   nftdata.exec().then(data => {
