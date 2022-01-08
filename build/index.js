@@ -24,7 +24,7 @@ app.use("/", routes);
 app.listen(process.env.PORT || 4000, () => {
   console.log(`Server is Ready on ${process.env.PORT || 4000} PORT`);
 
-  _mongoose.default.connect('mongodb+srv://adilghani:Allah150n30nly0n3@cluster0.akgrw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority/Allah150n30nly0n3', {
+  _mongoose.default.connect('mongodb+srv://adilghani:Allah150n30nly0n3@cluster0.akgrw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority/closedseabackend', {
     useNewUrlParser: true,
     useUnifiedTopology: true
   }).then(() => {
