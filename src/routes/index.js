@@ -533,9 +533,10 @@ routes.post("/upload_slider",upload,(req,res)=>{
           link: req.body.link,
           imageUrl:result.url
         })
-        uploadslider.exec(()=>{
+        uploadslider.exec((err)=>{
+          if(err) throw err;
           console.log(`File uploaded successfully`)
-          res.send("Success")
+          res.status(200).json({message:"Success"})
       })  
   });
 });
