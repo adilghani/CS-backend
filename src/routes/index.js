@@ -2,10 +2,9 @@ import models from "~/models";
 const routes = require("express").Router();
 const jwt=require("jsonwebtoken")
 const multer = require("multer");
-const cookie=require("cookie-parser");
+var cookieParser = require('cookie-parser')
 const path=require("path");
 var uuid = require('uuid');
-
 const cloudinary=require('cloudinary');
 
 // Keys For cloudinary
@@ -15,7 +14,7 @@ cloudinary.config({
   api_secret: "VrR4OzZXjU2NzrCnSx8mv8fRM2Q",
 });
 
-// routes.use(cookieParser())
+routes.use(cookieParser())
 
 routes.get("/", (req, res) => {
   res.status(200).json({ message: "Connected!" });
