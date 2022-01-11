@@ -15,7 +15,7 @@ app.use("/", routes);
 
 app.listen(process.env.PORT || 4000, () => {
   console.log(`Server is Ready on ${process.env.PORT || 4000} PORT`);
-  mongoose.connect('mongodb+srv://adilghani:A1b1c1d1@cluster0.akgrw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true}).then(() => {
+  mongoose.connect('mongodb+srv://adilghani:A1b1c1d1.@cluster0.akgrw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true}).then(() => {
     console.log(`MongoDB connected Successfully`);
   });
 });
