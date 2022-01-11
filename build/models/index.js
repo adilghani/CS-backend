@@ -115,6 +115,14 @@ const adminRegiterSchema = new _mongoose.default.Schema({
     required: true
   }
 });
+const uploadSliderSchema = new _mongoose.default.Schema({
+  slider: String,
+  imageUrl: {
+    type: String,
+    required: true
+  },
+  link: String
+});
 
 const userModel = _mongoose.default.model('user', userSchema);
 
@@ -126,12 +134,15 @@ const nftControllerModel = _mongoose.default.model('nftController', nftControlle
 
 const adminRegisterModel = _mongoose.default.model('Admins', adminRegiterSchema);
 
+const uploadSliderModel = _mongoose.default.model('slider', uploadSliderSchema);
+
 const models = {
   userModel,
   collectionModel,
   viewAndLikeModel,
   nftControllerModel,
-  adminRegisterModel
+  adminRegisterModel,
+  uploadSliderModel
 };
 var _default = models;
 exports.default = _default;

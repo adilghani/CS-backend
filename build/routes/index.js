@@ -8,7 +8,22 @@ const routes = require("express").Router();
 
 const jwt = require("jsonwebtoken");
 
+const multer = require("multer");
+
 const cookie = require("cookie-parser");
+
+const path = require("path");
+
+var uuid = require('uuid');
+
+const cloudinary = require('cloudinary'); // Keys For cloudinary
+
+
+cloudinary.config({
+  cloud_name: "dscolw4gq",
+  api_key: "541579474534226",
+  api_secret: "VrR4OzZXjU2NzrCnSx8mv8fRM2Q"
+}); // routes.use(cookieParser())
 
 routes.get("/", (req, res) => {
   res.status(200).json({
@@ -514,8 +529,6 @@ routes.post("/admin-login", (req, res) => {
   }).catch(err => console.log(err));
 });
 routes.get("/nft-collector", (req, res) => {
-  console.log("running");
-
   var nftdata = _models.default.nftControllerModel.find();
 
   nftdata.exec().then(data => {
@@ -538,6 +551,49 @@ routes.post("/nft-collector", (req, res) => {
   });
   createNft.save(function () {
     res.send("done");
+  });
+});
+console.log(path.join(__dirname, "../", "../public/sliderimage/"));
+const filePath = path.join(__dirname, "../", "../public/sliderimage/"); // for file upload
+
+var Storage = multer.diskStorage({
+  destination: filePath,
+  filename: (req, file, cb) => {
+    cb(null, uuid.v4() + path.extname(file.originalname));
+  }
+});
+var upload = multer({
+  storage: Storage
+}).single('pic');
+routes.post("/upload_slider", upload, (req, res) => {
+  console.log(req.file);
+  cloudinary.v2.uploader.upload(req.file.path, {
+    folder: 'closedsea'
+  }, function (error, result) {
+    if (error) throw error;
+
+    let uploadslider = _models.default.uploadSliderModel.findOneAndUpdate({
+      slider: req.body.slider
+    }, {
+      link: req.body.link,
+      imageUrl: result.url
+    });
+
+    uploadslider.exec(() => {
+      console.log(`File uploaded successfully`);
+      res.send("Success");
+    });
+  });
+});
+routes.get("/getsliders", (req, res) => {
+  let filterData = _models.default.uploadSliderModel.find();
+
+  filterData.exec(function (err, data) {
+    if (err) throw err;
+
+    if (data) {
+      res.status(200).json(data);
+    }
   });
 });
 module.exports = routes;
