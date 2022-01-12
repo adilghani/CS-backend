@@ -16,15 +16,15 @@ const path = require("path");
 
 var uuid = require('uuid');
 
-const fs = require('fs');
+const cloudinary = require('cloudinary'); // Keys For cloudinary
 
-const AWS = require('aws-sdk');
 
-routes.use(cookieParser());
-const s3 = new AWS.S3({
-  accessKeyId: "AKIASAFVMRRSMD5RISOV",
-  secretAccessKey: "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"
+cloudinary.config({
+  cloud_name: "dscolw4gq",
+  api_key: "541579474534226",
+  api_secret: "VrR4OzZXjU2NzrCnSx8mv8fRM2Q"
 });
+routes.use(cookieParser());
 routes.get("/", (req, res) => {
   res.status(200).json({
     message: "Connected!"
@@ -565,97 +565,27 @@ var Storage = multer.diskStorage({
 var upload = multer({
   storage: Storage
 }).single('pic');
-routes.post("/add_slider", upload, (req, res) => {
-  if (req.file == undefined) {
-    res.status("400").json({
-      message: "Image is Required"
+routes.post("/upload_slider", upload, (req, res) => {
+  console.log(req.file);
+  cloudinary.v2.uploader.upload(req.file.path, {
+    folder: 'closedsea'
+  }, function (error, result) {
+    if (error) throw error;
+
+    let uploadslider = _models.default.uploadSliderModel.findOneAndUpdate({
+      slider: req.body.slider
+    }, {
+      link: req.body.link,
+      imageUrl: result.url
     });
-  } else if (req.body.link == undefined) {
-    res.status("400").json({
-      message: "Link is Required"
-    });
-  } else {
-    fs.readFile(req.file.path, (err, data) => {
+
+    uploadslider.exec(err => {
       if (err) throw err;
-      const params = {
-        Bucket: 'closedsea',
-        // pass your bucket name
-        Key: req.file.filename,
-        // file will be saved as testBucket/contacts.csv
-        ACL: "public-read",
-        ContentType: req.file.mimetype,
-        Body: data
-      };
-      s3.upload(params, function (s3Err, data) {
-        if (s3Err) throw s3Err;
-        let uploadslider = new _models.default.uploadSliderModel({
-          link: req.body.link,
-          imageUrl: data.Location
-        });
-        uploadslider.save(err => {
-          if (err) throw err;
-          console.log(`File uploaded successfully at ${data.Location}`);
-          res.status(200).json({
-            message: "Success"
-          });
-        });
+      console.log(`File uploaded successfully`);
+      res.status(200).json({
+        message: "Success"
       });
     });
-  }
-});
-routes.post("/update_slider", upload, (req, res) => {
-  if (req.file == undefined) {
-    res.status("400").json({
-      message: "Image is Required"
-    });
-  } else if (req.body.link == undefined) {
-    res.status("400").json({
-      message: "Link is Required"
-    });
-  } else {
-    console.log(req.file);
-    fs.readFile(req.file.path, (err, data) => {
-      if (err) throw err;
-      const params = {
-        Bucket: 'closedsea',
-        // pass your bucket name
-        Key: req.file.filename,
-        // file will be saved as testBucket/contacts.csv
-        ACL: "public-read",
-        ContentType: req.file.mimetype,
-        Body: data
-      };
-      s3.upload(params, function (s3Err, data) {
-        if (s3Err) throw s3Err;
-
-        let uploadslider = _models.default.uploadSliderModel.findOneAndUpdate({
-          _id: req.body.id
-        }, {
-          link: req.body.link,
-          imageUrl: data.Location
-        });
-
-        uploadslider.exec(err => {
-          if (err) throw err;
-          console.log(`File uploaded successfully at ${data.Location}`);
-          res.status(200).json({
-            message: "Success"
-          });
-        });
-      });
-    });
-  }
-});
-routes.delete("/delete_slider", upload, (req, res) => {
-  let url = req.body.imageUrl.split(".com/")[1];
-  console.log(url);
-  s3.deleteObject({
-    Bucket: "closedsea",
-    Key: url
-  }, function (err, data) {
-    console.log(err);
-    console.log(data);
-    res.send("Success");
   });
 });
 routes.get("/getsliders", (req, res) => {
@@ -708,4 +638,4 @@ routes.route("/search").get(async (req, res) => {
   }
 });
 module.exports = routes;
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=index2.js.map
