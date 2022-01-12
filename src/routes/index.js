@@ -550,4 +550,36 @@ routes.get("/getsliders",(req,res)=>{
     }
   });
 })
+
+routes.route("/search").get(async (req, res) => {
+  console.log(req.query);
+  try {
+    const { name } = req.query;
+    console.log(name);
+    // const resp = await models.userModel.find({
+    //   username: "OneDabLife ",
+    // });
+    const collections = await models.collectionModel.find({
+      $text: { $search: name },
+    });
+    const users = await models.userModel.find({ $text: { $search: name } });
+
+    res.status(200).json({
+      message: "success",
+
+      data: {
+        collections,
+        users,
+      },
+    });
+    // const obj = await models.viewAndLikeModel
+    //   .findOne({ tokenAddr, tokenId })
+    //   .lean()
+    //   .exec();
+  } catch (error) {
+    console.log("Search Error => ", error);
+    res.status(500).json({ message: error.toString() });
+  }
+});
+
 module.exports = routes;

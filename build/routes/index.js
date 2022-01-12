@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 
 const multer = require("multer");
 
-const cookie = require("cookie-parser");
+var cookieParser = require('cookie-parser');
 
 const path = require("path");
 
@@ -23,8 +23,8 @@ cloudinary.config({
   cloud_name: "dscolw4gq",
   api_key: "541579474534226",
   api_secret: "VrR4OzZXjU2NzrCnSx8mv8fRM2Q"
-}); // routes.use(cookieParser())
-
+});
+routes.use(cookieParser());
 routes.get("/", (req, res) => {
   res.status(200).json({
     message: "Connected!"
@@ -579,9 +579,12 @@ routes.post("/upload_slider", upload, (req, res) => {
       imageUrl: result.url
     });
 
-    uploadslider.exec(() => {
+    uploadslider.exec(err => {
+      if (err) throw err;
       console.log(`File uploaded successfully`);
-      res.send("Success");
+      res.status(200).json({
+        message: "Success"
+      });
     });
   });
 });
@@ -595,6 +598,44 @@ routes.get("/getsliders", (req, res) => {
       res.status(200).json(data);
     }
   });
+});
+routes.route("/search").get(async (req, res) => {
+  console.log(req.query);
+
+  try {
+    const {
+      name
+    } = req.query;
+    console.log(name); // const resp = await models.userModel.find({
+    //   username: "OneDabLife ",
+    // });
+
+    const collections = await _models.default.collectionModel.find({
+      $text: {
+        $search: name
+      }
+    });
+    const users = await _models.default.userModel.find({
+      $text: {
+        $search: name
+      }
+    });
+    res.status(200).json({
+      message: "success",
+      data: {
+        collections,
+        users
+      }
+    }); // const obj = await models.viewAndLikeModel
+    //   .findOne({ tokenAddr, tokenId })
+    //   .lean()
+    //   .exec();
+  } catch (error) {
+    console.log("Search Error => ", error);
+    res.status(500).json({
+      message: error.toString()
+    });
+  }
 });
 module.exports = routes;
 //# sourceMappingURL=index.js.map
