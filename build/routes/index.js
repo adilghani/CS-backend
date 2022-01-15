@@ -605,11 +605,11 @@ routes.post("/add_slider", upload, (req, res) => {
 });
 routes.post("/update_slider", upload, (req, res) => {
   if (req.file == undefined) {
-    res.status("400").json({
+    res.status(400).json({
       message: "Image is Required"
     });
   } else if (req.body.link == undefined) {
-    res.status("400").json({
+    res.status(400).json({
       message: "Link is Required"
     });
   } else {
@@ -648,14 +648,20 @@ routes.post("/update_slider", upload, (req, res) => {
 });
 routes.delete("/delete_slider", upload, (req, res) => {
   let url = req.body.imageUrl.split(".com/")[1];
+  var deleteSlider = news_Model.findOneAndDelete({
+    _id: req.body.id
+  });
   console.log(url);
   s3.deleteObject({
     Bucket: "closedsea",
     Key: url
   }, function (err, data) {
-    console.log(err);
-    console.log(data);
-    res.send("Success");
+    deleteSlider.exec(function (err) {
+      if (err) throw err;
+      res.status(200).json({
+        message: "Successfully deleted"
+      });
+    });
   });
 });
 routes.get("/getsliders", (req, res) => {
@@ -670,8 +676,7 @@ routes.get("/getsliders", (req, res) => {
   });
 });
 routes.route("/search").get(async (req, res) => {
-  console.log(req.query);
-
+  // console.log(req.query.name);
   try {
     const {
       name
@@ -680,26 +685,39 @@ routes.route("/search").get(async (req, res) => {
     //   username: "OneDabLife ",
     // });
 
-    const collections = await _models.default.collectionModel.find({
-      $text: {
-        $search: name
-      }
-    });
-    const users = await _models.default.userModel.find({
-      $text: {
-        $search: name
-      }
-    });
-    res.status(200).json({
-      message: "success",
-      data: {
-        collections,
-        users
-      }
-    }); // const obj = await models.viewAndLikeModel
+    if (name) {
+      const collections = await _models.default.collectionModel.find({
+        name: {
+          $regex: '^' + name,
+          $options: 'i'
+        }
+      });
+      const users = await _models.default.userModel.find({
+        userName: {
+          $regex: '^' + name,
+          $options: 'i'
+        }
+      });
+      res.status(200).json({
+        message: "success",
+        data: {
+          collections,
+          users
+        }
+      });
+    } else {
+      res.status(200).json({
+        message: "success",
+        data: {
+          collections: "",
+          users: ""
+        }
+      });
+    } // const obj = await models.viewAndLikeModel
     //   .findOne({ tokenAddr, tokenId })
     //   .lean()
     //   .exec();
+
   } catch (error) {
     console.log("Search Error => ", error);
     res.status(500).json({

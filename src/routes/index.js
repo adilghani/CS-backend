@@ -618,18 +618,16 @@ routes.get("/getsliders",(req,res)=>{
 })
 
 routes.route("/search").get(async (req, res) => {
-  console.log(req.query);
   try {
     const { name } = req.query;
     console.log(name);
     // const resp = await models.userModel.find({
     //   username: "OneDabLife ",
     // });
-    const collections = await models.collectionModel.find({
-      $text: { $search: name },
-    });
-    const users = await models.userModel.find({ $text: { $search: name } });
-
+    if(name){
+    const collections = await models.collectionModel.find({ name: { $regex:'^' + name, $options: 'i'} });
+    const users = await models.userModel.find({ userName: { $regex:'^' + name, $options: 'i'} });
+    
     res.status(200).json({
       message: "success",
 
@@ -637,7 +635,17 @@ routes.route("/search").get(async (req, res) => {
         collections,
         users,
       },
-    });
+    });}
+    else{
+      res.status(200).json({
+        message: "success",
+  
+        data: {
+          collections:"",
+          users:""
+        }
+    })
+  }
     // const obj = await models.viewAndLikeModel
     //   .findOne({ tokenAddr, tokenId })
     //   .lean()
