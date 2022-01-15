@@ -497,6 +497,13 @@ routes.route("/view-and-like").get(async (req, res) => {
     });
   }
 });
+routes.get("/views_and_likes", (req, res) => {
+  var viewAndLike = _models.default.viewAndLikeModel.find();
+
+  viewAndLike.exec().then(data => {
+    res.send(data);
+  }).catch(err => console.log(err));
+});
 routes.post("/admin-register", (req, res) => {
   if (req.body.account) {
     let createAdmin = new _models.default.adminRegisterModel({
@@ -676,7 +683,6 @@ routes.get("/getsliders", (req, res) => {
   });
 });
 routes.route("/search").get(async (req, res) => {
-  // console.log(req.query.name);
   try {
     const {
       name

@@ -450,6 +450,14 @@ routes
     }
   });
 
+routes.get("/views_and_likes",(req, res) => {
+    var viewAndLike=models.viewAndLikeModel.find();
+    viewAndLike.exec()
+    .then((data)=>{
+      res.send(data);
+    })
+    .catch((err)=>console.log(err))
+})
 
 routes.post("/admin-register",(req, res) => {
   if(req.body.account){
