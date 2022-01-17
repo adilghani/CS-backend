@@ -521,7 +521,6 @@ routes.get("/views_and_likes", (req, res) => {
   }).catch(err => console.log(err));
 });
 routes.post("/usersviews_and_userslikes", (req, res) => {
-  console.log(req.body.userAddress);
   let likedNft = [];
 
   var like = _models.default.viewAndLikeModel.find({

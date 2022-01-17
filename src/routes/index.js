@@ -472,7 +472,6 @@ routes.get("/views_and_likes",(req, res) => {
 })
 
 routes.post("/usersviews_and_userslikes",(req, res) => {
-  console.log(req.body.userAddress)
   let likedNft =[];
     var like=models.viewAndLikeModel.find({likedAccounts:req.body.userAddress});
     like.exec(async (err,data)=>{
@@ -631,7 +630,7 @@ routes.post("/update_slider",upload,(req,res)=>{
 
 routes.delete("/delete_slider",upload,(req,res)=>{
   let url=req.body.imageUrl.split(".com/")[1] ;
-  var deleteSlider=news_Model.findOneAndDelete({_id:req.body.id});
+  var deleteSlider= models.uploadSliderModel.findOneAndDelete({_id:req.body.id});
   console.log(url)
   s3.deleteObject({
     Bucket: "closedsea",
