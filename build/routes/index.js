@@ -527,8 +527,8 @@ routes.post("/usersviews_and_userslikes", (req, res) => {
     likedAccounts: req.body.userAddress
   });
 
-  like.exec(async (err, data) => {
-    data.forEach(async function (token) {
+  like.exec((err, data) => {
+    data.forEach(function (token) {
       let nftdata = _models.default.nftControllerModel.findOne({
         tokenId: token.tokenId
       });
@@ -540,6 +540,29 @@ routes.post("/usersviews_and_userslikes", (req, res) => {
     });
     setTimeout(() => res.status(200).json({
       likedNft
+    }), 3000);
+  });
+});
+routes.post("/usersviews", (req, res) => {
+  let viewedNft = [];
+
+  var view = _models.default.viewAndLikeModel.find({
+    viewedAddresses: req.body.userAddress
+  });
+
+  view.exec((err, data) => {
+    data.forEach(function (token) {
+      let nftdata = _models.default.nftControllerModel.findOne({
+        tokenId: token.tokenId
+      });
+
+      nftdata.exec((err, nft) => {
+        if (err) throw err;
+        viewedNft.push(nft);
+      });
+    });
+    setTimeout(() => res.status(200).json({
+      viewedNft
     }), 3000);
   });
 });
@@ -693,9 +716,11 @@ routes.post("/update_slider", upload, (req, res) => {
 });
 routes.delete("/delete_slider", upload, (req, res) => {
   let url = req.body.imageUrl.split(".com/")[1];
-  var deleteSlider = news_Model.findOneAndDelete({
+
+  var deleteSlider = _models.default.uploadSliderModel.findOneAndDelete({
     _id: req.body.id
   });
+
   console.log(url);
   s3.deleteObject({
     Bucket: "closedsea",

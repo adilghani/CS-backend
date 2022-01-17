@@ -474,8 +474,8 @@ routes.get("/views_and_likes",(req, res) => {
 routes.post("/usersviews_and_userslikes",(req, res) => {
   let likedNft =[];
     var like=models.viewAndLikeModel.find({likedAccounts:req.body.userAddress});
-    like.exec(async (err,data)=>{
-      data.forEach(async function(token){
+    like.exec((err,data)=>{
+      data.forEach(function(token){
         let nftdata=models.nftControllerModel.findOne({tokenId:token.tokenId});
         nftdata.exec((err,nft)=>{
           if (err) throw err
@@ -483,6 +483,21 @@ routes.post("/usersviews_and_userslikes",(req, res) => {
         })
       })
       setTimeout(()=>res.status(200).json({likedNft}),3000);
+    })
+})
+
+routes.post("/usersviews",(req, res) => {
+  let viewedNft =[];
+    var view=models.viewAndLikeModel.find({viewedAddresses:req.body.userAddress});
+    view.exec((err,data)=>{
+      data.forEach(function(token){
+        let nftdata=models.nftControllerModel.findOne({tokenId:token.tokenId});
+        nftdata.exec((err,nft)=>{
+          if (err) throw err
+          viewedNft.push(nft)
+        })
+      })
+      setTimeout(()=>res.status(200).json({viewedNft}),3000);
     })
 })
 
