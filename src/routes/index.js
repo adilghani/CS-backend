@@ -4,11 +4,16 @@ const jwt=require("jsonwebtoken")
 const multer = require("multer");
 var cookieParser = require('cookie-parser')
 const path=require("path");
+const bodyParser=require("body-parser");
 var uuid = require('uuid');
 const fs = require('fs');
 const AWS = require('aws-sdk')
 
 routes.use(cookieParser())
+
+// Body Parsers
+routes.use(bodyParser.urlencoded({ extended: false }));
+routes.use(bodyParser.json());
 
 const s3 = new AWS.S3({
   accessKeyId: "AKIASAFVMRRSMD5RISOV",
@@ -63,6 +68,13 @@ routes
       .exec();
     res.status(200).json({ ...user });
   });
+
+routes.get("/get-all-users", (req, res) => {
+    let user = models.userModel.find();
+    user.exec((err,data)=>{
+      res.status(200).json({data});
+    })
+});
 
 routes
   .route("/collection")
@@ -459,6 +471,24 @@ routes.get("/views_and_likes",(req, res) => {
     .catch((err)=>console.log(err))
 })
 
+routes.post("/usersviews_and_userslikes",(req, res) => {
+  console.log(req.body.userAddress)
+  let likedNft =[];
+    var like=models.viewAndLikeModel.find({likedAccounts:req.body.userAddress});
+    like.exec(async (err,data)=>{
+      data.forEach(async function(token){
+        let nftdata=models.nftControllerModel.findOne({tokenId:token.tokenId});
+        nftdata.exec((err,nft)=>{
+          if (err) throw err
+          likedNft.push(nft)
+        })
+      })
+      setTimeout(()=>res.status(200).json({likedNft}),3000);
+    })
+})
+
+
+
 routes.post("/admin-register",(req, res) => {
   if(req.body.account){
     let createAdmin=new models.adminRegisterModel({
@@ -517,7 +547,6 @@ routes.post("/nft-collector",(req, res) => {
     });
 })
 
-console.log(path.join(__dirname,"../","../public/sliderimage/"))
 const filePath = path.join(__dirname,"../","../public/sliderimage/");
 
 // for file upload
