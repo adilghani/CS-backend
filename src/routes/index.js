@@ -643,10 +643,9 @@ routes.post("/update_slider",upload,(req,res)=>{
 }
 });
 
-routes.delete("/delete_slider",upload,(req,res)=>{
-  let url=req.body.imageUrl.split(".com/")[1] ;
-  var deleteSlider= models.uploadSliderModel.findOneAndDelete({_id:req.body.id});
-  console.log(url)
+routes.delete("/delete_slider/:id",upload,(req,res)=>{
+  let url=req.query.q.split(".com/")[1] ;
+  var deleteSlider= models.uploadSliderModel.findOneAndDelete({_id:req.params.id});
   s3.deleteObject({
     Bucket: "closedsea",
     Key: url

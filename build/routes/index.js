@@ -714,25 +714,23 @@ routes.post("/update_slider", upload, (req, res) => {
     });
   }
 });
-routes.delete("/delete_slider", upload, (req, res) => {
-  let url = req.body.imageUrl.split(".com/")[1];
+routes.delete("/delete_slider/:id", upload, (req, res) => {
+  let url = req.query.q.split(".com/")[1];
 
   var deleteSlider = _models.default.uploadSliderModel.findOneAndDelete({
-    _id: req.body.id
+    _id: req.params.id
   });
 
-  console.log(url);
-  s3.deleteObject({
-    Bucket: "closedsea",
-    Key: url
-  }, function (err, data) {
-    deleteSlider.exec(function (err) {
-      if (err) throw err;
-      res.status(200).json({
-        message: "Successfully deleted"
-      });
-    });
-  });
+  console.log(req.query);
+  console.log(req.params.id); // s3.deleteObject({
+  //   Bucket: "closedsea",
+  //   Key: url
+  // },function (err,data){
+  //   deleteSlider.exec(function(err){
+  //     if(err) throw err;
+  //     res.status(200).json({message:"Successfully deleted"})
+  // })
+  // })
 });
 routes.get("/getsliders", (req, res) => {
   let filterData = _models.default.uploadSliderModel.find();
