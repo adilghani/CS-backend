@@ -643,31 +643,39 @@ routes.post("/add_slider", upload, (req, res) => {
       message: "Link is Required"
     });
   } else {
-    fs.readFile(req.file.path, (err, data) => {
-      if (err) throw err;
-      const params = {
-        Bucket: 'closedsea',
-        // pass your bucket name
-        Key: req.file.filename,
-        // file will be saved as testBucket/contacts.csv
-        ACL: "public-read",
-        ContentType: req.file.mimetype,
-        Body: data
-      };
-      s3.upload(params, function (s3Err, data) {
-        if (s3Err) throw s3Err;
-        let uploadslider = new _models.default.uploadSliderModel({
-          link: req.body.link,
-          imageUrl: data.Location
+    _models.default.uploadSliderModel.countDocuments({}, function (err, documents) {
+      if (documents == 3) {
+        res.status(202).json({
+          msg: "slider limit exceed"
         });
-        uploadslider.save(err => {
+      } else {
+        fs.readFile(req.file.path, (err, data) => {
           if (err) throw err;
-          console.log(`File uploaded successfully at ${data.Location}`);
-          res.status(200).json({
-            message: "Success"
+          const params = {
+            Bucket: 'closedsea',
+            // pass your bucket name
+            Key: req.file.filename,
+            // file will be saved as testBucket/contacts.csv
+            ACL: "public-read",
+            ContentType: req.file.mimetype,
+            Body: data
+          };
+          s3.upload(params, function (s3Err, data) {
+            if (s3Err) throw s3Err;
+            let uploadslider = new _models.default.uploadSliderModel({
+              link: req.body.link,
+              imageUrl: data.Location
+            });
+            uploadslider.save(err => {
+              if (err) throw err;
+              console.log(`File uploaded successfully at ${data.Location}`);
+              res.status(200).json({
+                message: "Success"
+              });
+            });
           });
         });
-      });
+      }
     });
   }
 });
@@ -721,16 +729,17 @@ routes.delete("/delete_slider/:id", upload, (req, res) => {
     _id: req.params.id
   });
 
-  console.log(req.query);
-  console.log(req.params.id); // s3.deleteObject({
-  //   Bucket: "closedsea",
-  //   Key: url
-  // },function (err,data){
-  //   deleteSlider.exec(function(err){
-  //     if(err) throw err;
-  //     res.status(200).json({message:"Successfully deleted"})
-  // })
-  // })
+  s3.deleteObject({
+    Bucket: "closedsea",
+    Key: url
+  }, function (err, data) {
+    deleteSlider.exec(function (err) {
+      if (err) throw err;
+      res.status(200).json({
+        message: "Successfully deleted"
+      });
+    });
+  });
 });
 routes.get("/getsliders", (req, res) => {
   let filterData = _models.default.uploadSliderModel.find();

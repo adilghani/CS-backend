@@ -584,28 +584,35 @@ routes.post("/add_slider",upload,(req,res)=>{
     res.status("400").json({message:"Link is Required"})
   }
   else{
-  fs.readFile(req.file.path, (err, data) => {
-    if (err) throw err;
-    const params = {
-        Bucket: 'closedsea', // pass your bucket name
-        Key: req.file.filename, // file will be saved as testBucket/contacts.csv
-        ACL: "public-read",
-        ContentType: req.file.mimetype,
-        Body: data
-    };
-    s3.upload(params, function(s3Err, data) {
-        if (s3Err) throw s3Err
-        let uploadslider= new models.uploadSliderModel({
-          link: req.body.link,
-          imageUrl:data.Location
-        })
-        uploadslider.save((err)=>{
-          if(err) throw err;
-          console.log(`File uploaded successfully at ${data.Location}`)
-          res.status(200).json({message:"Success"})
-        })
-    });
- });
+    models.uploadSliderModel.countDocuments({}, function(err, documents) {
+      if(documents==10){
+        res.status(202).json({msg:"slider limit exceed"})
+      }
+      else{
+      fs.readFile(req.file.path, (err, data) => {
+        if (err) throw err;
+        const params = {
+            Bucket: 'closedsea', // pass your bucket name
+            Key: req.file.filename, // file will be saved as testBucket/contacts.csv
+            ACL: "public-read",
+            ContentType: req.file.mimetype,
+            Body: data
+        };
+        s3.upload(params, function(s3Err, data) {
+            if (s3Err) throw s3Err
+            let uploadslider= new models.uploadSliderModel({
+              link: req.body.link,
+              imageUrl:data.Location
+            })
+            uploadslider.save((err)=>{
+              if(err) throw err;
+              console.log(`File uploaded successfully at ${data.Location}`)
+              res.status(200).json({message:"Success"})
+            })
+        });
+      });
+    }
+});
 }
 });
 
