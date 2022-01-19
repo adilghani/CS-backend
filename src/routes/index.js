@@ -163,6 +163,42 @@ routes
     }
   });
 
+const profilefilePath = path.join(__dirname,"../","../public/commonimage/");
+
+// for file upload
+var Storage=multer.diskStorage({
+  destination:profilefilePath,
+  filename:(req,file,cb)=>{
+    cb(null,uuid.v4()+path.extname(file.originalname))
+  }
+})
+
+var uploadImage=multer({
+  storage:Storage
+}).single('file');
+ 
+routes.post("/upload_file_to_s3",uploadImage,(req,res)=>{
+  if(req.file == undefined){
+    res.status("400").json({message:"Image is Required"})
+  }
+  else{
+      fs.readFile(req.file.path, (err, data) => {
+        if (err) throw err;
+        const params = {
+            Bucket: 'closedsea', // pass your bucket name
+            Key: req.body.fname, // file will be saved
+            ACL: "public-read",
+            ContentType: req.file.mimetype,
+            Body: data
+        };
+        s3.upload(params, function(s3Err, data) {
+            if (s3Err) throw s3Err
+            res.status(200).json(data);
+        });
+      });
+    }
+})
+
 routes.get("/collection-names", async (req, res) => {
   try {
     const collections = await models.collectionModel
@@ -593,7 +629,7 @@ routes.post("/add_slider",upload,(req,res)=>{
         if (err) throw err;
         const params = {
             Bucket: 'closedsea', // pass your bucket name
-            Key: req.file.filename, // file will be saved as testBucket/contacts.csv
+            Key: req.file.filename, // file will be saved
             ACL: "public-read",
             ContentType: req.file.mimetype,
             Body: data
