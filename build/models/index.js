@@ -38,7 +38,9 @@ const userSchema = new _mongoose.default.Schema({
   },
   instagram: {
     type: String
-  }
+  },
+  follower: Array,
+  following: Array
 });
 userSchema.plugin(_helpers.timeStamp);
 const collectionSchema = new _mongoose.default.Schema({

@@ -601,6 +601,32 @@ routes.post("/usersviews", (req, res) => {
     }), 3000);
   });
 });
+routes.post("/users_follow", (req, res) => {
+  let follower = _models.default.userModel.findOneAndUpdate({
+    address: req.body.follower
+  }, {
+    $push: {
+      'follower': req.body.following
+    }
+  });
+
+  follower.exec(err => {
+    if (err) throw err;
+
+    let following = _models.default.userModel.findOneAndUpdate({
+      address: req.body.following
+    }, {
+      $push: {
+        'following': req.body.follower
+      }
+    });
+
+    following.exec(err => {
+      if (err) throw err;
+      res.send("success");
+    });
+  });
+});
 routes.post("/admin-register", (req, res) => {
   if (req.body.account) {
     let createAdmin = new _models.default.adminRegisterModel({

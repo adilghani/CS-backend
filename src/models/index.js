@@ -28,7 +28,10 @@ const userSchema = new mongoose.Schema({
   },
   instagram: {
     type: String
-  }
+  },
+  
+  follower:Array,
+  following:Array
 });
 
 userSchema.plugin(timeStamp);

@@ -522,6 +522,8 @@ routes.post("/usersviews_and_userslikes",(req, res) => {
     })
 })
 
+
+
 routes.post("/usersviews",(req, res) => {
   let viewedNft =[];
     var view=models.viewAndLikeModel.find({viewedAddresses:req.body.userAddress});
@@ -537,7 +539,21 @@ routes.post("/usersviews",(req, res) => {
     })
 })
 
-
+routes.post("/users_follow",(req, res) => {
+  let follower=models.userModel.findOneAndUpdate({address:req.body.follower},{
+    $push: {'follower': req.body.following}
+  })
+  follower.exec((err)=>{
+    if(err) throw err;
+    let following=models.userModel.findOneAndUpdate({address:req.body.following},{
+      $push: {'following': req.body.follower}
+    })
+    following.exec((err)=>{
+      if(err) throw err;
+      res.send("success")
+    })
+  })
+})
 
 routes.post("/admin-register",(req, res) => {
   if(req.body.account){
