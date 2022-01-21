@@ -629,7 +629,6 @@ routes.post("/users_follow", (req, res) => {
 });
 routes.post("/get-followers", (req, res) => {
   let followers = [];
-  console.log(req.body.userAddress);
 
   var user = _models.default.userModel.findOne({
     address: req.body.userAddress
@@ -637,7 +636,6 @@ routes.post("/get-followers", (req, res) => {
 
   user.exec((err, data) => {
     if (err) throw err;
-    console.log(data);
 
     if (data !== undefined && data !== null) {
       data.follower.map(function (address) {
@@ -670,7 +668,7 @@ routes.post("/get-following", (req, res) => {
   user.exec((err, data) => {
     if (err) throw err;
 
-    if (data) {
+    if (data !== undefined && data !== null) {
       data.following.map(function (address) {
         let userdata = _models.default.userModel.findOne({
           address: address

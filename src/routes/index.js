@@ -672,6 +672,26 @@ routes.post("/nft-collector",(req, res) => {
 
 })
 
+routes.post("/update-nft-status",(req, res) => {
+  let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
+  filterData.exec((err,data)=>{
+    if (err) throw err;
+    if(data!==undefined && data!==null){
+      let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
+        status: req.body.status,
+      })
+      updateNft.exec((err)=>{
+        if(err) throw err;
+        res.status(200).json({message:"Success"})
+      })
+    }
+    else{
+      res.status(400).json({message:"Nft not found"})
+    }
+})
+
+})
+
 routes.get("/count-nft",(req, res) => {
   models.nftControllerModel.countDocuments({}, function(err, count) {
     res.status(202).json(count)

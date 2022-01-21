@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({
 app.use(_express.default.json());
 app.use((0, _cors.default)());
 app.use("/", routes);
-app.listen(process.env.PORT || 5000, () => {
+app.listen(process.env.PORT || 4000, () => {
   console.log(`Server is Ready on ${process.env.PORT || 4000} PORT`);
 
   _mongoose.default.connect('mongodb+srv://adilghani:A1b1c1d1.@cluster0.akgrw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {
