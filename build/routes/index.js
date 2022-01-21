@@ -627,6 +627,70 @@ routes.post("/users_follow", (req, res) => {
     });
   });
 });
+routes.post("/get-followers", (req, res) => {
+  let followers = [];
+  console.log(req.body.userAddress);
+
+  var user = _models.default.userModel.findOne({
+    address: req.body.userAddress
+  });
+
+  user.exec((err, data) => {
+    if (err) throw err;
+    console.log(data);
+
+    if (data !== undefined && data !== null) {
+      data.follower.map(function (address) {
+        let userdata = _models.default.userModel.findOne({
+          address: address
+        });
+
+        userdata.exec((err, fdata) => {
+          if (err) throw err;
+          followers.push(fdata);
+        });
+      });
+      setTimeout(() => res.status(200).json({
+        followers
+      }), 3000);
+    } else {
+      res.status(400).json({
+        msg: "No Data"
+      });
+    }
+  });
+});
+routes.post("/get-following", (req, res) => {
+  let followerings = [];
+
+  var user = _models.default.userModel.findOne({
+    address: req.body.userAddress
+  });
+
+  user.exec((err, data) => {
+    if (err) throw err;
+
+    if (data) {
+      data.following.map(function (address) {
+        let userdata = _models.default.userModel.findOne({
+          address: address
+        });
+
+        userdata.exec((err, fdata) => {
+          if (err) throw err;
+          followerings.push(fdata);
+        });
+      });
+      setTimeout(() => res.status(200).json({
+        followerings
+      }), 3000);
+    } else {
+      res.status(400).json({
+        msg: "No Data"
+      });
+    }
+  });
+});
 routes.post("/admin-register", (req, res) => {
   if (req.body.account) {
     let createAdmin = new _models.default.adminRegisterModel({
@@ -662,8 +726,7 @@ routes.get("/nft-collector", (req, res) => {
   var nftdata = _models.default.nftControllerModel.find();
 
   nftdata.exec().then(data => {
-    res.header("Access-Control-Allow-Origin");
-    res.send(data);
+    res.status(200).json(data);
   }).catch(err => console.log(err));
 });
 routes.post("/nft-collector", (req, res) => {
@@ -708,6 +771,11 @@ routes.post("/nft-collector", (req, res) => {
         });
       });
     }
+  });
+});
+routes.get("/count-nft", (req, res) => {
+  _models.default.nftControllerModel.countDocuments({}, function (err, count) {
+    res.status(202).json(count);
   });
 });
 const filePath = path.join(__dirname, "../", "../public/sliderimage/"); // for file upload

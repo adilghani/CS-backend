@@ -555,6 +555,48 @@ routes.post("/users_follow",(req, res) => {
   })
 })
 
+routes.post("/get-followers",(req, res) => {
+  let followers=[];
+    var user=models.userModel.findOne({address:req.body.userAddress});
+    user.exec((err,data)=>{
+      if(err) throw err;
+      if(data!==undefined && data!==null){
+        data.follower.map(function(address){
+          let userdata=models.userModel.findOne({address:address});
+          userdata.exec((err,fdata)=>{
+            if (err) throw err
+            followers.push(fdata)
+          })
+        })
+        setTimeout(()=>res.status(200).json({followers}),3000);
+      }
+      else{
+        res.status(400).json({msg:"No Data"})
+      }
+    })
+})
+
+routes.post("/get-following",(req, res) => {
+  let followerings=[];
+    var user=models.userModel.findOne({address:req.body.userAddress});
+    user.exec((err,data)=>{
+      if(err) throw err;
+      if(data!==undefined && data!==null){
+        data.following.map(function(address){
+          let userdata=models.userModel.findOne({address:address});
+          userdata.exec((err,fdata)=>{
+            if (err) throw err
+            followerings.push(fdata)
+          })
+        })
+        setTimeout(()=>res.status(200).json({followerings}),3000);
+      }
+      else{
+        res.status(400).json({msg:"No Data"})
+      }
+    })
+})
+
 routes.post("/admin-register",(req, res) => {
   if(req.body.account){
     let createAdmin=new models.adminRegisterModel({
