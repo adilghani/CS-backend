@@ -104,7 +104,9 @@ const nftControllerSchema = new mongoose.Schema({
     description:String,
     externalLink:String
   },
-  tokenUri:String
+  tokenUri:String,
+  selectedCat:String,
+  status:String
 });
 
 const adminRegiterSchema = new mongoose.Schema({

@@ -589,14 +589,26 @@ routes.get("/nft-collector",(req, res) => {
   var nftdata=models.nftControllerModel.find();
   nftdata.exec()
   .then((data)=>{
-    res.header( "Access-Control-Allow-Origin" );
-    res.send(data);
+    res.status(200).json(data)
   })
   .catch((err)=>console.log(err))
 })
 
 routes.post("/nft-collector",(req, res) => {
-    let createNft=new models.nftControllerModel({
+  let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
+  filterData.exec((err,data)=>{
+    if (err) throw err;
+    if(data!==undefined){
+      let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
+        price: req.body.price,
+      })
+      updateNft.exec((err)=>{
+        if(err) throw err;
+        res.status(200).json({message:"Success"})
+      })
+    }
+    else{
+      let createNft=new models.nftControllerModel({
         tokenAddr: req.body.tokenAddr,
         tokenId: req.body.tokenId,
         price: req.body.price,
@@ -606,11 +618,22 @@ routes.post("/nft-collector",(req, res) => {
             description:req.body.metadata.description,
             externalLink:req.body.metadata.externalLink
           },
-        tokenUri:req.body.tokenUri
-    })
-    createNft.save(function(){
-      res.send("done");
+        selectedCat:req.body.selectedCat,
+        tokenUri:req.body.tokenUri,
+        status:"pending"
+      })
+      createNft.save(function(){
+        res.status(200).json({message:"Success"})
     });
+    }
+})
+
+})
+
+routes.get("/count-nft",(req, res) => {
+  models.nftControllerModel.countDocuments({}, function(err, count) {
+    res.status(202).json(count)
+  })
 })
 
 const filePath = path.join(__dirname,"../","../public/sliderimage/");

@@ -667,20 +667,47 @@ routes.get("/nft-collector", (req, res) => {
   }).catch(err => console.log(err));
 });
 routes.post("/nft-collector", (req, res) => {
-  let createNft = new _models.default.nftControllerModel({
-    tokenAddr: req.body.tokenAddr,
-    tokenId: req.body.tokenId,
-    price: req.body.price,
-    metadata: {
-      imageUrl: req.body.metadata.imageUrl,
-      name: req.body.metadata.name,
-      description: req.body.metadata.description,
-      externalLink: req.body.metadata.externalLink
-    },
-    tokenUri: req.body.tokenUri
+  let filterData = _models.default.nftControllerModel.findOne({
+    tokenId: req.body.tokenId
   });
-  createNft.save(function () {
-    res.send("done");
+
+  filterData.exec((err, data) => {
+    if (err) throw err;
+
+    if (data !== undefined) {
+      let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
+        tokenId: req.body.tokenId
+      }, {
+        price: req.body.price
+      });
+
+      updateNft.exec(err => {
+        if (err) throw err;
+        res.status(200).json({
+          message: "Success"
+        });
+      });
+    } else {
+      let createNft = new _models.default.nftControllerModel({
+        tokenAddr: req.body.tokenAddr,
+        tokenId: req.body.tokenId,
+        price: req.body.price,
+        metadata: {
+          imageUrl: req.body.metadata.imageUrl,
+          name: req.body.metadata.name,
+          description: req.body.metadata.description,
+          externalLink: req.body.metadata.externalLink
+        },
+        selectedCat: req.body.selectedCat,
+        tokenUri: req.body.tokenUri,
+        status: "pending"
+      });
+      createNft.save(function () {
+        res.status(200).json({
+          message: "Success"
+        });
+      });
+    }
   });
 });
 const filePath = path.join(__dirname, "../", "../public/sliderimage/"); // for file upload

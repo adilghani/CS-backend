@@ -109,7 +109,9 @@ const nftControllerSchema = new _mongoose.default.Schema({
     description: String,
     externalLink: String
   },
-  tokenUri: String
+  tokenUri: String,
+  selectedCat: String,
+  status: String
 });
 const adminRegiterSchema = new _mongoose.default.Schema({
   walletAddress: {
