@@ -771,8 +771,6 @@ routes.post("/nft-collector", (req, res) => {
     }
   });
 });
-<<<<<<< Updated upstream
-=======
 routes.post("/update-nft-status", (req, res) => {
   let filterData = _models.default.nftControllerModel.findOne({
     tokenId: req.body.tokenId
@@ -801,7 +799,6 @@ routes.post("/update-nft-status", (req, res) => {
     }
   });
 });
->>>>>>> Stashed changes
 routes.get("/count-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({}, function (err, count) {
     res.status(202).json(count);
