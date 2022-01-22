@@ -771,6 +771,37 @@ routes.post("/nft-collector", (req, res) => {
     }
   });
 });
+<<<<<<< Updated upstream
+=======
+routes.post("/update-nft-status", (req, res) => {
+  let filterData = _models.default.nftControllerModel.findOne({
+    tokenId: req.body.tokenId
+  });
+
+  filterData.exec((err, data) => {
+    if (err) throw err;
+
+    if (data !== undefined && data !== null) {
+      let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
+        tokenId: req.body.tokenId
+      }, {
+        status: req.body.status
+      });
+
+      updateNft.exec(err => {
+        if (err) throw err;
+        res.status(200).json({
+          message: "Success"
+        });
+      });
+    } else {
+      res.status(400).json({
+        message: "Nft not found"
+      });
+    }
+  });
+});
+>>>>>>> Stashed changes
 routes.get("/count-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({}, function (err, count) {
     res.status(202).json(count);
