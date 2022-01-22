@@ -698,6 +698,23 @@ routes.get("/count-nft",(req, res) => {
   })
 })
 
+routes.post("/nft-pagination",(req, res) => {
+  console.log((req.body.page-1)*req.body.size)
+  console.log(req.body.size)
+
+  let limitedNft=models.nftControllerModel.find({}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+  models.nftControllerModel.countDocuments({}, function(err, count) {
+    let totalPage=Math.ceil(count/req.body.size);
+    console.log(totalPage)
+    limitedNft.exec((err,data)=>{
+      if(err) throw err;
+      if(data[0]!==undefined && data[0]!==null){
+        res.status(202).json({nft:data,totalPage:totalPage})
+      }
+    })
+  })
+})
+
 const filePath = path.join(__dirname,"../","../public/sliderimage/");
 
 // for file upload
