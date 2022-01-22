@@ -682,7 +682,7 @@ routes.post("/update-nft-status",(req, res) => {
       })
       updateNft.exec((err)=>{
         if(err) throw err;
-        res.status(200).json({message:"Success"})
+        res.status(200).json({message:"Status Updated Successfully"})
       })
     }
     else{

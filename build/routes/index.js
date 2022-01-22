@@ -789,7 +789,7 @@ routes.post("/update-nft-status", (req, res) => {
       updateNft.exec(err => {
         if (err) throw err;
         res.status(200).json({
-          message: "Success"
+          message: "Status Updated Successfully"
         });
       });
     } else {
@@ -802,6 +802,24 @@ routes.post("/update-nft-status", (req, res) => {
 routes.get("/count-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({}, function (err, count) {
     res.status(202).json(count);
+  });
+});
+routes.post("/nft-pagination", (req, res) => {
+  let limitedNft = _models.default.nftControllerModel.find({}).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
+
+  _models.default.nftControllerModel.countDocuments({}, function (err, count) {
+    let totalPage = Math.ceil(count / req.body.size);
+    console.log(totalPage);
+    limitedNft.exec((err, data) => {
+      if (err) throw err;
+
+      if (data[0] !== undefined && data[0] !== null) {
+        res.status(202).json({
+          nft: data,
+          totalPage: totalPage
+        });
+      }
+    });
   });
 });
 const filePath = path.join(__dirname, "../", "../public/sliderimage/"); // for file upload
