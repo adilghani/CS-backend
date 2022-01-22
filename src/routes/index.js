@@ -577,7 +577,7 @@ routes.post("/get-followers",(req, res) => {
 })
 
 routes.post("/get-following",(req, res) => {
-  let followerings=[];
+  let followings=[];
     var user=models.userModel.findOne({address:req.body.userAddress});
     user.exec((err,data)=>{
       if(err) throw err;
@@ -586,10 +586,10 @@ routes.post("/get-following",(req, res) => {
           let userdata=models.userModel.findOne({address:address});
           userdata.exec((err,fdata)=>{
             if (err) throw err
-            followerings.push(fdata)
+            followings.push(fdata)
           })
         })
-        setTimeout(()=>res.status(200).json({followerings}),3000);
+        setTimeout(()=>res.status(200).json({followings}),3000);
       }
       else{
         res.status(400).json({msg:"No Data"})
