@@ -682,7 +682,7 @@ routes.post("/update-nft-status",(req, res) => {
       })
       updateNft.exec((err)=>{
         if(err) throw err;
-        res.status(200).json({message:"Success"})
+        res.status(200).json({message:"Status Updated Successfully"})
       })
     }
     else{
@@ -699,9 +699,6 @@ routes.get("/count-nft",(req, res) => {
 })
 
 routes.post("/nft-pagination",(req, res) => {
-  console.log((req.body.page-1)*req.body.size)
-  console.log(req.body.size)
-
   let limitedNft=models.nftControllerModel.find({}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
   models.nftControllerModel.countDocuments({}, function(err, count) {
     let totalPage=Math.ceil(count/req.body.size);
