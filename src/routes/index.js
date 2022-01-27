@@ -561,14 +561,21 @@ routes.post("/get-followers",(req, res) => {
     user.exec((err,data)=>{
       if(err) throw err;
       if(data!==undefined && data!==null){
-        data.follower.map(function(address){
+        if(data.follower[0]!==undefined && data.follower[0]!==null){
+         data.follower.map(function(address){
           let userdata=models.userModel.findOne({address:address});
           userdata.exec((err,fdata)=>{
             if (err) throw err
-            followers.push(fdata)
+            if(fdata!==undefined && fdata!==null){
+              followers.push(fdata)
+            }
           })
         })
-        setTimeout(()=>res.status(200).json({followers}),3000);
+          setTimeout(()=>res.status(200).json({followers}),3000);
+          }
+        else{
+          res.status(400).json({msg:"No followers"})
+        }
       }
       else{
         res.status(400).json({msg:"No Data"})
@@ -582,19 +589,23 @@ routes.post("/get-following",(req, res) => {
     user.exec((err,data)=>{
       if(err) throw err;
       if(data!==undefined && data!==null){
-        data.following.map(function(address){
-          let userdata=models.userModel.findOne({address:address});
-          userdata.exec((err,fdata)=>{
-            if (err) throw err
-            followings.push(fdata)
+        if(data.following[0]!==undefined && data.following[0]!==null){
+          data.following.map(function(address){
+            let userdata=models.userModel.findOne({address:address});
+            userdata.exec((err,fdata)=>{
+              if (err) throw err
+              if(fdata!==undefined && fdata!==null){
+                followings.push(fdata)
+              }
+            })
           })
-        })
         setTimeout(()=>res.status(200).json({followings}),3000);
       }
+    }
       else{
         res.status(400).json({msg:"No Data"})
       }
-    })
+  })
 })
 
 routes.post("/admin-register",(req, res) => {
