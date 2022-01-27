@@ -854,6 +854,21 @@ routes.post("/nft-pagination", (req, res) => {
     });
   });
 });
+routes.get("/feature-nft", (req, res) => {
+  var nftdata = _models.default.nftControllerModel.find({
+    featured: true
+  });
+
+  nftdata.exec().then(data => {
+    if (data[0] !== undefined && data[0] !== null) {
+      res.status(200).json(data);
+    } else {
+      res.status(400).json({
+        message: "No any Nft is featured"
+      });
+    }
+  }).catch(err => console.log(err));
+});
 routes.post("/feature-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({
     featured: true
@@ -872,18 +887,24 @@ routes.post("/feature-nft", (req, res) => {
 
         if (data !== undefined && data !== null) {
           if (data.status == "active") {
-            let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
-              tokenId: req.body.tokenId
-            }, {
-              featured: true
-            });
-
-            updateNft.exec(err => {
-              if (err) throw err;
-              res.status(200).json({
-                message: "Status Updated Successfully"
+            if (!data.featured) {
+              let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
+                tokenId: req.body.tokenId
+              }, {
+                featured: true
               });
-            });
+
+              updateNft.exec(err => {
+                if (err) throw err;
+                res.status(200).json({
+                  message: "Nft Featured Successfully"
+                });
+              });
+            } else {
+              res.status(400).json({
+                message: "Nft is Already featured"
+              });
+            }
           } else {
             res.status(400).json({
               message: "Nft not activated"
