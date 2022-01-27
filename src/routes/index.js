@@ -523,7 +523,6 @@ routes.post("/usersviews_and_userslikes",(req, res) => {
 })
 
 
-
 routes.post("/usersviews",(req, res) => {
   let viewedNft =[];
     var view=models.viewAndLikeModel.find({viewedAddresses:req.body.userAddress});
@@ -600,6 +599,9 @@ routes.post("/get-following",(req, res) => {
             })
           })
         setTimeout(()=>res.status(200).json({followings}),3000);
+      }
+      else{
+        res.status(400).json({msg:"No followings"})
       }
     }
       else{
@@ -720,6 +722,37 @@ routes.post("/nft-pagination",(req, res) => {
         res.status(202).json({nft:data,totalPage:totalPage})
       }
     })
+  })
+})
+
+routes.post("/feature-nft",(req, res) => {
+  models.nftControllerModel.countDocuments({featured: true}, function(err, documents) {
+    if(documents==10){
+      res.status(202).json({msg:"Feature nft limit exceed"})
+    }
+    else{
+      let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
+      filterData.exec((err,data)=>{
+        if (err) throw err;
+        if(data!==undefined && data!==null){
+          if(data.status=="active"){
+            let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
+              featured: true,
+            })
+            updateNft.exec((err)=>{
+              if(err) throw err;
+              res.status(200).json({message:"Status Updated Successfully"})
+            })
+        }
+        else{
+          res.status(400).json({message:"Nft not activated"})
+        }
+      }
+        else{
+          res.status(400).json({message:"Nft not found"})
+        }
+      })
+    }
   })
 })
 
