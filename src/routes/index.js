@@ -744,6 +744,9 @@ routes.post("/feature-nft",(req, res) => {
     if(documents==10 && req.body.isFeatured==true){
       res.status(202).json({message:"Feature nft limit exceed"})
     }
+    else if(documents==3 && req.body.isFeatured==false){
+      res.status(202).json({message:"Minimum 3 should be featured"})
+    }
     else{
       let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
       filterData.exec((err,data)=>{
