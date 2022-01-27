@@ -741,7 +741,7 @@ routes.get("/feature-nft",(req, res) => {
 
 routes.post("/feature-nft",(req, res) => {
   models.nftControllerModel.countDocuments({featured: true}, function(err, documents) {
-    if(documents==10){
+    if(documents==10 && req.body.isFeatured==true){
       res.status(202).json({message:"Feature nft limit exceed"})
     }
     else{
