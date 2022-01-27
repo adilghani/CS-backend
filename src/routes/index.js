@@ -742,7 +742,7 @@ routes.get("/feature-nft",(req, res) => {
 routes.post("/feature-nft",(req, res) => {
   models.nftControllerModel.countDocuments({featured: true}, function(err, documents) {
     if(documents==10){
-      res.status(202).json({msg:"Feature nft limit exceed"})
+      res.status(202).json({message:"Feature nft limit exceed"})
     }
     else{
       let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
@@ -750,18 +750,13 @@ routes.post("/feature-nft",(req, res) => {
         if (err) throw err;
         if(data!==undefined && data!==null){
           if(data.status=="active"){
-            if(!data.featured){
             let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
-              featured: true,
+              featured: req.body.isFeature,
             })
             updateNft.exec((err)=>{
               if(err) throw err;
-              res.status(200).json({message:"Nft Featured Successfully"})
+              res.status(200).json({message:"Nft Updated Successfully"})
             })
-          }
-          else{
-            res.status(400).json({message:"Nft is Already featured"})
-          }
         }
         else{
           res.status(400).json({message:"Nft not activated"})
