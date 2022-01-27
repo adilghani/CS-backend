@@ -876,7 +876,7 @@ routes.post("/feature-nft", (req, res) => {
             let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
               tokenId: req.body.tokenId
             }, {
-              featured: req.body.isFeature
+              featured: req.body.isFeatured
             });
 
             updateNft.exec(err => {

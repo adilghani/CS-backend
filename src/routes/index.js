@@ -751,7 +751,7 @@ routes.post("/feature-nft",(req, res) => {
         if(data!==undefined && data!==null){
           if(data.status=="active"){
             let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
-              featured: req.body.isFeature,
+              featured: req.body.isFeatured,
             })
             updateNft.exec((err)=>{
               if(err) throw err;
