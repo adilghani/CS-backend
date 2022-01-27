@@ -653,7 +653,6 @@ routes.post("/get-followers", (req, res) => {
 
     if (data !== undefined && data !== null) {
       if (data.follower[0] !== undefined && data.follower[0] !== null) {
-        console.log(data.follower);
         data.follower.map(function (address) {
           let userdata = _models.default.userModel.findOne({
             address: address
@@ -693,19 +692,28 @@ routes.post("/get-following", (req, res) => {
     if (err) throw err;
 
     if (data !== undefined && data !== null) {
-      data.following.map(function (address) {
-        let userdata = _models.default.userModel.findOne({
-          address: address
-        });
+      if (data.following[0] !== undefined && data.following[0] !== null) {
+        data.following.map(function (address) {
+          let userdata = _models.default.userModel.findOne({
+            address: address
+          });
 
-        userdata.exec((err, fdata) => {
-          if (err) throw err;
-          followings.push(fdata);
+          userdata.exec((err, fdata) => {
+            if (err) throw err;
+
+            if (fdata !== undefined && fdata !== null) {
+              followings.push(fdata);
+            }
+          });
         });
-      });
-      setTimeout(() => res.status(200).json({
-        followings
-      }), 3000);
+        setTimeout(() => res.status(200).json({
+          followings
+        }), 3000);
+      } else {
+        res.status(400).json({
+          msg: "No followings"
+        });
+      }
     } else {
       res.status(400).json({
         msg: "No Data"
@@ -844,6 +852,50 @@ routes.post("/nft-pagination", (req, res) => {
         });
       }
     });
+  });
+});
+routes.post("/feature-nft", (req, res) => {
+  _models.default.nftControllerModel.countDocuments({
+    featured: true
+  }, function (err, documents) {
+    if (documents == 10) {
+      res.status(202).json({
+        msg: "Feature nft limit exceed"
+      });
+    } else {
+      let filterData = _models.default.nftControllerModel.findOne({
+        tokenId: req.body.tokenId
+      });
+
+      filterData.exec((err, data) => {
+        if (err) throw err;
+
+        if (data !== undefined && data !== null) {
+          if (data.status == "active") {
+            let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
+              tokenId: req.body.tokenId
+            }, {
+              featured: true
+            });
+
+            updateNft.exec(err => {
+              if (err) throw err;
+              res.status(200).json({
+                message: "Status Updated Successfully"
+              });
+            });
+          } else {
+            res.status(400).json({
+              message: "Nft not activated"
+            });
+          }
+        } else {
+          res.status(400).json({
+            message: "Nft not found"
+          });
+        }
+      });
+    }
   });
 });
 const filePath = path.join(__dirname, "../", "../public/sliderimage/"); // for file upload
