@@ -100,6 +100,8 @@ routes.get("/get-all-users", (req, res) => {
 });
 routes.route("/collection").post(async (req, res) => {
   try {
+    var _body$owner, _body$nftAddress;
+
     const {
       body
     } = req;
@@ -113,8 +115,8 @@ routes.route("/collection").post(async (req, res) => {
 
     await _models.default.collectionModel.create({
       name: body.name,
-      owner: body.owner?.toLowerCase(),
-      nftAddress: body.nftAddress?.toLowerCase(),
+      owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
+      nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
       avatar: body.avatar,
       background: body.background,
       description: body.description,
@@ -130,6 +132,8 @@ routes.route("/collection").post(async (req, res) => {
   }
 }).put(async (req, res) => {
   try {
+    var _body$name;
+
     const {
       body
     } = req;
@@ -143,7 +147,7 @@ routes.route("/collection").post(async (req, res) => {
     }
 
     let data = {
-      name: body.name?.toLowerCase()
+      name: (_body$name = body.name) === null || _body$name === void 0 ? void 0 : _body$name.toLowerCase()
     };
 
     if (!!body.avatar) {
@@ -261,7 +265,9 @@ routes.get("/collection-names", async (req, res) => {
 });
 routes.get("/my-collections", async (req, res) => {
   try {
-    const owner = req.query.owner?.toLowerCase();
+    var _req$query$owner;
+
+    const owner = (_req$query$owner = req.query.owner) === null || _req$query$owner === void 0 ? void 0 : _req$query$owner.toLowerCase();
     const collections = await _models.default.collectionModel.find({
       owner
     }).lean().exec();
@@ -346,10 +352,14 @@ routes.route("/view-and-like").get(async (req, res) => {
     });
 
     if (obj) {
+      var _body$tokenAddr;
+
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        if (obj.viewedAddresses?.includes(body.address)) {
+        var _obj$viewedAddresses;
+
+        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
           throw new Error("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -364,7 +374,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        if (obj.likedAccounts?.includes(body.address)) {
+        var _obj$likedAccounts;
+
+        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
           throw new Error("Already Liked");
         } //else if
         else {
@@ -522,7 +534,7 @@ routes.route("/view-and-like").get(async (req, res) => {
 
 
       const newUpdatedInfo = await _models.default.viewAndLikeModel.findOneAndUpdate({
-        tokenAddr: body.tokenAddr?.toLowerCase(),
+        tokenAddr: (_body$tokenAddr = body.tokenAddr) === null || _body$tokenAddr === void 0 ? void 0 : _body$tokenAddr.toLowerCase(),
         tokenId: body.tokenId
       }, {
         views: obj.views + body.views,
@@ -532,13 +544,15 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
+      var _body$tokenAddr2, _body$address, _body$address2;
+
       await _models.default.viewAndLikeModel.create({
-        tokenAddr: body.tokenAddr?.toLowerCase(),
+        tokenAddr: (_body$tokenAddr2 = body.tokenAddr) === null || _body$tokenAddr2 === void 0 ? void 0 : _body$tokenAddr2.toLowerCase(),
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
       });
     }
   } catch (error) {
@@ -638,19 +652,29 @@ routes.post("/get-followers", (req, res) => {
     if (err) throw err;
 
     if (data !== undefined && data !== null) {
-      data.follower.map(function (address) {
-        let userdata = _models.default.userModel.findOne({
-          address: address
-        });
+      if (data.follower[0] !== undefined && data.follower[0] !== null) {
+        console.log(data.follower);
+        data.follower.map(function (address) {
+          let userdata = _models.default.userModel.findOne({
+            address: address
+          });
 
-        userdata.exec((err, fdata) => {
-          if (err) throw err;
-          followers.push(fdata);
+          userdata.exec((err, fdata) => {
+            if (err) throw err;
+
+            if (fdata !== undefined && fdata !== null) {
+              followers.push(fdata);
+            }
+          });
         });
-      });
-      setTimeout(() => res.status(200).json({
-        followers
-      }), 3000);
+        setTimeout(() => res.status(200).json({
+          followers
+        }), 3000);
+      } else {
+        res.status(400).json({
+          msg: "No followers"
+        });
+      }
     } else {
       res.status(400).json({
         msg: "No Data"
@@ -659,7 +683,7 @@ routes.post("/get-followers", (req, res) => {
   });
 });
 routes.post("/get-following", (req, res) => {
-  let followerings = [];
+  let followings = [];
 
   var user = _models.default.userModel.findOne({
     address: req.body.userAddress
@@ -676,11 +700,11 @@ routes.post("/get-following", (req, res) => {
 
         userdata.exec((err, fdata) => {
           if (err) throw err;
-          followerings.push(fdata);
+          followings.push(fdata);
         });
       });
       setTimeout(() => res.status(200).json({
-        followerings
+        followings
       }), 3000);
     } else {
       res.status(400).json({
