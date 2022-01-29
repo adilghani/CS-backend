@@ -656,6 +656,7 @@ routes.post("/nft-collector",(req, res) => {
     if(data!==undefined){
       let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
         price: req.body.price,
+        owner:req.body.owner
       })
       updateNft.exec((err)=>{
         if(err) throw err;
@@ -667,6 +668,7 @@ routes.post("/nft-collector",(req, res) => {
         tokenAddr: req.body.tokenAddr,
         tokenId: req.body.tokenId,
         price: req.body.price,
+        owner:req.body.owner,
         metadata: {
             imageUrl:req.body.metadata.imageUrl,
             name:req.body.metadata.name,
