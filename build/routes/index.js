@@ -760,33 +760,28 @@ routes.get("/nft-collector", (req, res) => {
   }).catch(err => console.log(err));
 });
 routes.post("/nft-collector", (req, res) => {
-  // console.log(req.body)
   let filterData = _models.default.nftControllerModel.findOne({
     tokenId: req.body.tokenId
   });
 
   filterData.exec((err, data) => {
     if (err) throw err;
-    console.log(data);
 
     if (data !== undefined && data !== null) {
-      console.log("dd");
-
       let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
         tokenId: req.body.tokenId
       }, {
         price: req.body.price,
-        owner: req.body.owner
+        owner: req.body.ownerOf
       });
 
       updateNft.exec(err => {
         if (err) throw err;
         res.status(200).json({
-          message: "Success"
+          message: "Updated Success"
         });
       });
     } else {
-      console.log("uu");
       let createNft = new _models.default.nftControllerModel({
         tokenAddr: req.body.tokenAddr,
         tokenId: req.body.tokenId,
