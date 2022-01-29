@@ -100,6 +100,8 @@ routes.get("/get-all-users", (req, res) => {
 });
 routes.route("/collection").post(async (req, res) => {
   try {
+    var _body$owner, _body$nftAddress;
+
     const {
       body
     } = req;
@@ -113,8 +115,8 @@ routes.route("/collection").post(async (req, res) => {
 
     await _models.default.collectionModel.create({
       name: body.name,
-      owner: body.owner?.toLowerCase(),
-      nftAddress: body.nftAddress?.toLowerCase(),
+      owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
+      nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
       avatar: body.avatar,
       background: body.background,
       description: body.description,
@@ -130,6 +132,8 @@ routes.route("/collection").post(async (req, res) => {
   }
 }).put(async (req, res) => {
   try {
+    var _body$name;
+
     const {
       body
     } = req;
@@ -143,7 +147,7 @@ routes.route("/collection").post(async (req, res) => {
     }
 
     let data = {
-      name: body.name?.toLowerCase()
+      name: (_body$name = body.name) === null || _body$name === void 0 ? void 0 : _body$name.toLowerCase()
     };
 
     if (!!body.avatar) {
@@ -261,7 +265,9 @@ routes.get("/collection-names", async (req, res) => {
 });
 routes.get("/my-collections", async (req, res) => {
   try {
-    const owner = req.query.owner?.toLowerCase();
+    var _req$query$owner;
+
+    const owner = (_req$query$owner = req.query.owner) === null || _req$query$owner === void 0 ? void 0 : _req$query$owner.toLowerCase();
     const collections = await _models.default.collectionModel.find({
       owner
     }).lean().exec();
@@ -346,10 +352,14 @@ routes.route("/view-and-like").get(async (req, res) => {
     });
 
     if (obj) {
+      var _body$tokenAddr;
+
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        if (obj.viewedAddresses?.includes(body.address)) {
+        var _obj$viewedAddresses;
+
+        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
           throw new Error("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -364,7 +374,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        if (obj.likedAccounts?.includes(body.address)) {
+        var _obj$likedAccounts;
+
+        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
           throw new Error("Already Liked");
         } //else if
         else {
@@ -522,7 +534,7 @@ routes.route("/view-and-like").get(async (req, res) => {
 
 
       const newUpdatedInfo = await _models.default.viewAndLikeModel.findOneAndUpdate({
-        tokenAddr: body.tokenAddr?.toLowerCase(),
+        tokenAddr: (_body$tokenAddr = body.tokenAddr) === null || _body$tokenAddr === void 0 ? void 0 : _body$tokenAddr.toLowerCase(),
         tokenId: body.tokenId
       }, {
         views: obj.views + body.views,
@@ -532,13 +544,15 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
+      var _body$tokenAddr2, _body$address, _body$address2;
+
       await _models.default.viewAndLikeModel.create({
-        tokenAddr: body.tokenAddr?.toLowerCase(),
+        tokenAddr: (_body$tokenAddr2 = body.tokenAddr) === null || _body$tokenAddr2 === void 0 ? void 0 : _body$tokenAddr2.toLowerCase(),
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
       });
     }
   } catch (error) {
@@ -745,6 +759,39 @@ routes.get("/nft-collector", (req, res) => {
     res.status(200).json(data);
   }).catch(err => console.log(err));
 });
+routes.post("/temp-nft-collector", (req, res) => {
+  let filterData = _models.default.nftControllerModel.findOne({
+    tokenId: req.body.tokenId
+  });
+
+  filterData.exec((err, data) => {
+    // console.log(data)
+    if (err) throw err; // console.log(req.body.metadata)
+
+    if (data !== undefined && data !== null) {
+      console.log("1");
+      res.status(200).json({
+        message: "Success"
+      });
+    } else {
+      console.log("a");
+      let createNft = new _models.default.nftControllerModel({
+        tokenAddr: req.body.tokenAddr,
+        tokenId: req.body.tokenId,
+        price: req.body.price,
+        metadata: req.body.metadata,
+        tokenUri: req.body.tokenUri,
+        status: "pending"
+      });
+      createNft.save(function () {
+        console.log("succ");
+        res.status(200).json({
+          message: "Success"
+        });
+      });
+    }
+  });
+});
 routes.post("/nft-collector", (req, res) => {
   let filterData = _models.default.nftControllerModel.findOne({
     tokenId: req.body.tokenId
@@ -859,9 +906,13 @@ routes.post("/feature-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({
     featured: true
   }, function (err, documents) {
-    if (documents == 10) {
+    if (documents == 10 && req.body.isFeatured == true) {
       res.status(202).json({
         message: "Feature nft limit exceed"
+      });
+    } else if (documents == 3 && req.body.isFeatured == false) {
+      res.status(202).json({
+        message: "Minimum 3 should be featured"
       });
     } else {
       let filterData = _models.default.nftControllerModel.findOne({
