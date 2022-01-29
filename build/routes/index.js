@@ -759,52 +759,24 @@ routes.get("/nft-collector", (req, res) => {
     res.status(200).json(data);
   }).catch(err => console.log(err));
 });
-routes.post("/temp-nft-collector", (req, res) => {
-  let filterData = _models.default.nftControllerModel.findOne({
-    tokenId: req.body.tokenId
-  });
-
-  filterData.exec((err, data) => {
-    // console.log(data)
-    if (err) throw err; // console.log(req.body.metadata)
-
-    if (data !== undefined && data !== null) {
-      console.log("1");
-      res.status(200).json({
-        message: "Success"
-      });
-    } else {
-      console.log("a");
-      let createNft = new _models.default.nftControllerModel({
-        tokenAddr: req.body.tokenAddr,
-        tokenId: req.body.tokenId,
-        price: req.body.price,
-        metadata: req.body.metadata,
-        tokenUri: req.body.tokenUri,
-        status: "pending"
-      });
-      createNft.save(function () {
-        console.log("succ");
-        res.status(200).json({
-          message: "Success"
-        });
-      });
-    }
-  });
-});
 routes.post("/nft-collector", (req, res) => {
+  // console.log(req.body)
   let filterData = _models.default.nftControllerModel.findOne({
     tokenId: req.body.tokenId
   });
 
   filterData.exec((err, data) => {
     if (err) throw err;
+    console.log(data);
 
-    if (data !== undefined) {
+    if (data !== undefined && data !== null) {
+      console.log("dd");
+
       let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
         tokenId: req.body.tokenId
       }, {
-        price: req.body.price
+        price: req.body.price,
+        owner: req.body.owner
       });
 
       updateNft.exec(err => {
@@ -814,16 +786,13 @@ routes.post("/nft-collector", (req, res) => {
         });
       });
     } else {
+      console.log("uu");
       let createNft = new _models.default.nftControllerModel({
         tokenAddr: req.body.tokenAddr,
         tokenId: req.body.tokenId,
         price: req.body.price,
-        metadata: {
-          imageUrl: req.body.metadata.imageUrl,
-          name: req.body.metadata.name,
-          description: req.body.metadata.description,
-          externalLink: req.body.metadata.externalLink
-        },
+        owner: req.body.ownerOf,
+        metadata: req.body.metadata,
         selectedCat: req.body.selectedCat,
         tokenUri: req.body.tokenUri,
         status: "pending"

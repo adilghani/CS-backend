@@ -653,14 +653,14 @@ routes.post("/nft-collector",(req, res) => {
   let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
   filterData.exec((err,data)=>{
     if (err) throw err;
-    if(data!==undefined){
+    if(data!==undefined || data!==null){
       let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
         price: req.body.price,
-        owner:req.body.owner
+        owner:req.body.ownerOf
       })
       updateNft.exec((err)=>{
         if(err) throw err;
-        res.status(200).json({message:"Success"})
+        res.status(200).json({message:"Updated Success"})
       })
     }
     else{
@@ -669,12 +669,7 @@ routes.post("/nft-collector",(req, res) => {
         tokenId: req.body.tokenId,
         price: req.body.price,
         owner:req.body.ownerOf,
-        metadata: {
-            imageUrl:req.body.metadata.imageUrl,
-            name:req.body.metadata.name,
-            description:req.body.metadata.description,
-            externalLink:req.body.metadata.externalLink
-          },
+        metadata: req.body.metadata,
         selectedCat:req.body.selectedCat,
         tokenUri:req.body.tokenUri,
         status:"pending"

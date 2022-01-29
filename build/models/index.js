@@ -103,6 +103,9 @@ const nftControllerSchema = new _mongoose.default.Schema({
   price: {
     type: String
   },
+  owner: {
+    type: String
+  },
   metadata: {
     imageUrl: String,
     name: String,
