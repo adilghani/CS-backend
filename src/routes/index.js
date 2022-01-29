@@ -668,7 +668,7 @@ routes.post("/nft-collector",(req, res) => {
         tokenAddr: req.body.tokenAddr,
         tokenId: req.body.tokenId,
         price: req.body.price,
-        owner:req.body.owner,
+        owner:req.body.ownerOf,
         metadata: {
             imageUrl:req.body.metadata.imageUrl,
             name:req.body.metadata.name,
