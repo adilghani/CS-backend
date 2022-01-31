@@ -134,6 +134,14 @@ const uploadSliderSchema = new _mongoose.default.Schema({
   },
   link: String
 });
+const uploadfeatureSchema = new _mongoose.default.Schema({
+  collection_name: String,
+  imageUrl: {
+    type: String,
+    required: true
+  },
+  link: String
+});
 
 const userModel = _mongoose.default.model('user', userSchema);
 
@@ -147,13 +155,16 @@ const adminRegisterModel = _mongoose.default.model('Admins', adminRegiterSchema)
 
 const uploadSliderModel = _mongoose.default.model('slider', uploadSliderSchema);
 
+const uploadfeaturemodel = _mongoose.default.model('FeatureCollection', uploadfeatureSchema);
+
 const models = {
   userModel,
   collectionModel,
   viewAndLikeModel,
   nftControllerModel,
   adminRegisterModel,
-  uploadSliderModel
+  uploadSliderModel,
+  uploadfeaturemodel
 };
 var _default = models;
 exports.default = _default;

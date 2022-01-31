@@ -226,6 +226,58 @@ routes.route("/collection").post(async (req, res) => {
     console.log("[collection delete] error => ", error);
   }
 });
+const featureCollectionPath = path.join(__dirname, "../", "../public/featureCollectionImage/"); // for file upload
+
+var Storage = multer.diskStorage({
+  destination: featureCollectionPath,
+  filename: (req, file, cb) => {
+    cb(null, uuid.v4() + path.extname(file.originalname));
+  }
+});
+var uploadcoll = multer({
+  storage: Storage
+}).single('pic');
+routes.post("/feature_collection", uploadcoll, (req, res) => {
+  if (req.file == undefined) {
+    res.status(400).json({
+      message: "Image is Required"
+    });
+  } else if (req.body.link == undefined) {
+    res.status(400).json({
+      message: "Link is Required"
+    });
+  } else {
+    fs.readFile(req.file.path, (err, data) => {
+      if (err) throw err;
+      const params = {
+        Bucket: 'closedsea',
+        // pass your bucket name
+        Key: req.file.filename,
+        // file will be saved as testBucket/contacts.csv
+        ACL: "public-read",
+        ContentType: req.file.mimetype,
+        Body: data
+      };
+      s3.upload(params, function (err, data) {
+        if (err) throw err;
+
+        let filterFeatureCollection = _models.default.uploadfeaturemodel.findOneAndUpdate({
+          collection: req.body.collection
+        }, {
+          link: req.body.link,
+          imageUrl: data.Location
+        });
+
+        filterFeatureCollection.exec(err => {
+          if (err) throw err;
+          res.status(200).json({
+            message: "Success"
+          });
+        });
+      });
+    });
+  }
+});
 const profilefilePath = path.join(__dirname, "../", "../public/commonimage/"); // for file upload
 
 var Storage = multer.diskStorage({
