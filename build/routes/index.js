@@ -108,7 +108,20 @@ routes.route("/collection").post(async (req, res) => {
     });
 
     if (existingOne) {
-      throw new Error("Already Exist name");
+      if (err) throw err;
+
+      let tokenUpdate = _models.default.collectionModel.findOneAndUpdate({
+        name: body.name
+      }, {
+        $push: {
+          'tokens': body.tokens
+        }
+      });
+
+      tokenUpdate.exec(err => {
+        if (err) throw err;
+        res.send("Successfully token Added!");
+      });
     }
 
     await _models.default.collectionModel.create({
