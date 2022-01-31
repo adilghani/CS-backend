@@ -85,7 +85,14 @@ routes
         name: body.name,
       });
       if (existingOne) {
-        throw new Error("Already Exist name");
+        if(err) throw err;
+        let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
+          $push: {'tokens': body.tokens}
+        })
+        tokenUpdate.exec((err)=>{
+          if(err) throw err;
+          res.send("Successfully token Added!")
+        })
       }
       await models.collectionModel.create({
         name: body.name,
