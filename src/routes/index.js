@@ -216,6 +216,13 @@ routes
   }
   });
 
+  routes.get("/feature_collection", async (req, res) => {
+    models.uploadfeaturemodel.find((err,data)=>{
+      if(err) throw err;
+      res.status(200).json({data})
+    })
+  })
+
 const profilefilePath = path.join(__dirname,"../","../public/commonimage/");
 
 // for file upload
