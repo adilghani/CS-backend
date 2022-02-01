@@ -297,11 +297,16 @@ routes.put("/insert-token-to-collection", async (req, res) => {
       .lean()
       .exec();
     if (collection) {
-      const tokens = collection.tokens
-        ? [...collection.tokens, body.token]
-        : [body.token];
-      await models.collectionModel.updateOne({ name: body.name }, { tokens });
-      res.status(200).json("success");
+      let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
+        $push: {'tokens': body.token}
+      })
+      tokenUpdate.exec((err)=>{
+        if(err) throw err;
+        res.status.json({message:"Successfully token Added!"})
+      })
+    }
+    else{
+      res.status.json({message:"Document not found!"})
     }
   } catch (error) {
     console.log("[collection names] get error => ", error);
