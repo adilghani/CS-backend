@@ -105,10 +105,10 @@ routes.route("/collection").post(async (req, res) => {
     } = req;
     const existingOne = await _models.default.collectionModel.findOne({
       name: body.name
-    });
+    }); // console.log(existingOne)
 
     if (existingOne) {
-      if (err) throw err;
+      console.log("true");
 
       let tokenUpdate = _models.default.collectionModel.findOneAndUpdate({
         name: body.name
@@ -122,19 +122,19 @@ routes.route("/collection").post(async (req, res) => {
         if (err) throw err;
         res.send("Successfully token Added!");
       });
+    } else {
+      await _models.default.collectionModel.create({
+        name: body.name,
+        owner: body.owner?.toLowerCase(),
+        nftAddress: body.nftAddress?.toLowerCase(),
+        avatar: body.avatar,
+        background: body.background,
+        description: body.description,
+        externalUrl: body.externalUrl,
+        tokens: body.tokens || []
+      });
+      res.status(200).json("Successfully created!");
     }
-
-    await _models.default.collectionModel.create({
-      name: body.name,
-      owner: body.owner?.toLowerCase(),
-      nftAddress: body.nftAddress?.toLowerCase(),
-      avatar: body.avatar,
-      background: body.background,
-      description: body.description,
-      externalUrl: body.externalUrl,
-      tokens: body.tokens || []
-    });
-    res.status(200).json("Successfully created!");
   } catch (error) {
     console.log("[collection post] error => ", error);
     res.status(500).json({
@@ -277,6 +277,14 @@ routes.post("/feature_collection", uploadcoll, (req, res) => {
       });
     });
   }
+});
+routes.get("/feature_collection", async (req, res) => {
+  _models.default.uploadfeaturemodel.find((err, data) => {
+    if (err) throw err;
+    res.status(200).json({
+      data
+    });
+  });
 });
 const profilefilePath = path.join(__dirname, "../", "../public/commonimage/"); // for file upload
 

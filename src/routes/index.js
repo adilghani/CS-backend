@@ -84,8 +84,8 @@ routes
       const existingOne = await models.collectionModel.findOne({
         name: body.name,
       });
+      // console.log(existingOne)
       if (existingOne) {
-        if(err) throw err;
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
           $push: {'tokens': body.tokens}
         })
@@ -94,17 +94,19 @@ routes
           res.send("Successfully token Added!")
         })
       }
-      await models.collectionModel.create({
-        name: body.name,
-        owner: body.owner?.toLowerCase(),
-        nftAddress: body.nftAddress?.toLowerCase(),
-        avatar: body.avatar,
-        background: body.background,
-        description: body.description,
-        externalUrl: body.externalUrl,
-        tokens: body.tokens || [],
-      });
-      res.status(200).json("Successfully created!");
+      else{
+        await models.collectionModel.create({
+          name: body.name,
+          owner: body.owner?.toLowerCase(),
+          nftAddress: body.nftAddress?.toLowerCase(),
+          avatar: body.avatar,
+          background: body.background,
+          description: body.description,
+          externalUrl: body.externalUrl,
+          tokens: body.tokens || [],
+        });
+        res.status(200).json("Successfully created!");
+      }
     } catch (error) {
       console.log("[collection post] error => ", error);
       res.status(500).json({ message: error.toString() });
