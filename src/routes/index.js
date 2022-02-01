@@ -84,7 +84,7 @@ routes
       const existingOne = await models.collectionModel.findOne({
         name: body.name,
       });
-      // console.log(existingOne)
+      
       if (existingOne) {
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
           $push: {'tokens': body.tokens}
