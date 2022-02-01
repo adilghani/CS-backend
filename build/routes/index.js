@@ -105,15 +105,13 @@ routes.route("/collection").post(async (req, res) => {
     } = req;
     const existingOne = await _models.default.collectionModel.findOne({
       name: body.name
-    }); // console.log(existingOne)
+    });
 
     if (existingOne) {
-      console.log("true");
-
       let tokenUpdate = _models.default.collectionModel.findOneAndUpdate({
         name: body.name
       }, {
-        $push: {
+        $addToSet: {
           'tokens': body.tokens
         }
       });
@@ -201,10 +199,8 @@ routes.route("/collection").post(async (req, res) => {
   }
 }).get(async (req, res) => {
   try {
-    const name = req.query.name;
-    const collection = await _models.default.collectionModel.findOne({
-      name
-    }).lean().exec();
+    // const name = req.query.name;
+    const collection = await _models.default.collectionModel.find().lean().exec();
     res.status(200).json({ ...collection
     });
   } catch (error) {
