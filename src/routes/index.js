@@ -302,11 +302,11 @@ routes.put("/insert-token-to-collection", async (req, res) => {
       })
       tokenUpdate.exec((err)=>{
         if(err) throw err;
-        res.status.json({message:"Successfully token Added!"})
+        res.status(200).json({message:"Successfully token Added!"})
       })
     }
     else{
-      res.status.json({message:"Document not found!"})
+      res.status(200).json({message:"Document not found!"})
     }
   } catch (error) {
     console.log("[collection names] get error => ", error);
