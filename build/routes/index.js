@@ -111,7 +111,7 @@ routes.route("/collection").post(async (req, res) => {
       let tokenUpdate = _models.default.collectionModel.findOneAndUpdate({
         name: body.name
       }, {
-        $addToSet: {
+        $push: {
           'tokens': body.tokens
         }
       });
@@ -199,8 +199,10 @@ routes.route("/collection").post(async (req, res) => {
   }
 }).get(async (req, res) => {
   try {
-    // const name = req.query.name;
-    const collection = await _models.default.collectionModel.find().lean().exec();
+    const name = req.query.name;
+    const collection = await _models.default.collectionModel.findOne({
+      name
+    }).lean().exec();
     res.status(200).json({ ...collection
     });
   } catch (error) {
@@ -353,13 +355,24 @@ routes.put("/insert-token-to-collection", async (req, res) => {
     }).lean().exec();
 
     if (collection) {
-      const tokens = collection.tokens ? [...collection.tokens, body.token] : [body.token];
-      await _models.default.collectionModel.updateOne({
+      let tokenUpdate = _models.default.collectionModel.findOneAndUpdate({
         name: body.name
       }, {
-        tokens
+        $push: {
+          'tokens': body.token
+        }
       });
-      res.status(200).json("success");
+
+      tokenUpdate.exec(err => {
+        if (err) throw err;
+        res.status.json({
+          message: "Successfully token Added!"
+        });
+      });
+    } else {
+      res.status.json({
+        message: "Document not found!"
+      });
     }
   } catch (error) {
     console.log("[collection names] get error => ", error);
