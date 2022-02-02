@@ -143,7 +143,7 @@ const viewAndLikeModel = mongoose.model('viewAndLike', viewAndLikeSchema);
 const nftControllerModel = mongoose.model('nftController', nftControllerSchema);
 const adminRegisterModel = mongoose.model('Admins', adminRegiterSchema);
 const uploadSliderModel = mongoose.model('slider', uploadSliderSchema);
-const uploadfeaturemodel = mongoose.model('FeatureCollection', uploadfeatureSchema);
+const uploadfeaturemodel = mongoose.model('featurecollection', uploadfeatureSchema);
 
 const models = {
   userModel,

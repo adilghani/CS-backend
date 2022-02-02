@@ -205,7 +205,7 @@ routes
       };
       s3.upload(params, function(err, data) {
           if (err) throw err
-          let filterFeatureCollection= models.uploadfeaturemodel.findOneAndUpdate({collection:req.body.collection},{
+          let filterFeatureCollection= models.uploadfeaturemodel.findOneAndUpdate({collection_name:req.body.collection},{
             link: req.body.link,
             imageUrl:data.Location
           })
