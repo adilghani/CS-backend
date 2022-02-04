@@ -108,14 +108,14 @@ routes
         res.status(200).json("Successfully created!");
       }
     } catch (error) {
-      console.log("[collection post] error => ", error);
+      
       res.status(500).json({ message: error.toString() });
     }
   })
   .put(async (req, res) => {
     try {
       const { body } = req;
-      console.log("aj : **** body => ", body);
+      
       const existingOne = await models.collectionModel.findOne({
         _id: body._id,
       });
@@ -345,12 +345,12 @@ routes
   .post(async (req, res) => {
     try {
       const { body } = req;
-      console.log({ body });
+      
       const obj = await models.viewAndLikeModel.findOne({
         tokenAddr: body.tokenAddr,
         tokenId: body.tokenId,
       });
-      console.log({ obj });
+      
       if (obj) {
         // update
 
