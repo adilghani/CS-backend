@@ -87,7 +87,7 @@ routes
       
       if (existingOne) {
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
-          $push: {'tokens': body.tokens}
+          $push: {'tokens': parseInt(body.tokens)}
         })
         tokenUpdate.exec((err)=>{
           if(err) throw err;
@@ -103,19 +103,19 @@ routes
           background: body.background,
           description: body.description,
           externalUrl: body.externalUrl,
-          tokens: body.tokens || [],
+          tokens: parseInt(body.tokens) || [],
         });
         res.status(200).json("Successfully created!");
       }
     } catch (error) {
-      
+      console.log("[collection post] error => ", error);
       res.status(500).json({ message: error.toString() });
     }
   })
   .put(async (req, res) => {
     try {
       const { body } = req;
-      
+      console.log("aj : **** body => ", body);
       const existingOne = await models.collectionModel.findOne({
         _id: body._id,
       });
@@ -277,12 +277,18 @@ routes.get("/collection-names", async (req, res) => {
 routes.get("/my-collections", async (req, res) => {
   try {
     const owner = req.query.owner?.toLowerCase();
-    const collections = await models.collectionModel
-      .find({ owner })
-      .lean()
-      .exec();
-    console.log("aj : ***** collections => ", collections);
-    res.status(200).json(collections);
+    const token = req.query.token;
+    if(owner && token){
+      const collections = await models.collectionModel.find({$and:[ {owner:owner},{tokens:parseInt(token)} ]}).lean().exec();
+      res.status(200).json(collections);
+    }
+    else if(owner){
+      const collections = await models.collectionModel.find({ owner }).lean().exec();
+      res.status(200).json(collections);
+    }
+    else{
+      res.status(400).json({message:"Required value not found"});
+    }
   } catch (error) {
     console.log("[collection names] get error => ", error);
     res.status(500).json({ message: error.toString() });
@@ -298,7 +304,7 @@ routes.put("/insert-token-to-collection", async (req, res) => {
       .exec();
     if (collection) {
       let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
-        $push: {'tokens': body.token}
+        $push: {'tokens': parseInt(body.token)}
       })
       tokenUpdate.exec((err)=>{
         if(err) throw err;
@@ -345,12 +351,12 @@ routes
   .post(async (req, res) => {
     try {
       const { body } = req;
-      
+      console.log({ body });
       const obj = await models.viewAndLikeModel.findOne({
         tokenAddr: body.tokenAddr,
         tokenId: body.tokenId,
       });
-      
+      console.log({ obj });
       if (obj) {
         // update
 
