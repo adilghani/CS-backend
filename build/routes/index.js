@@ -112,7 +112,7 @@ routes.route("/collection").post(async (req, res) => {
         name: body.name
       }, {
         $push: {
-          'tokens': body.tokens
+          'tokens': parseInt(body.tokens)
         }
       });
 
@@ -121,15 +121,17 @@ routes.route("/collection").post(async (req, res) => {
         res.send("Successfully token Added!");
       });
     } else {
+      var _body$owner, _body$nftAddress;
+
       await _models.default.collectionModel.create({
         name: body.name,
-        owner: body.owner?.toLowerCase(),
-        nftAddress: body.nftAddress?.toLowerCase(),
+        owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
+        nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
         avatar: body.avatar,
         background: body.background,
         description: body.description,
         externalUrl: body.externalUrl,
-        tokens: body.tokens || []
+        tokens: parseInt(body.tokens) || []
       });
       res.status(200).json("Successfully created!");
     }
@@ -141,6 +143,8 @@ routes.route("/collection").post(async (req, res) => {
   }
 }).put(async (req, res) => {
   try {
+    var _body$name;
+
     const {
       body
     } = req;
@@ -154,7 +158,7 @@ routes.route("/collection").post(async (req, res) => {
     }
 
     let data = {
-      name: body.name?.toLowerCase()
+      name: (_body$name = body.name) === null || _body$name === void 0 ? void 0 : _body$name.toLowerCase()
     };
 
     if (!!body.avatar) {
@@ -260,7 +264,7 @@ routes.post("/feature_collection", uploadcoll, (req, res) => {
         if (err) throw err;
 
         let filterFeatureCollection = _models.default.uploadfeaturemodel.findOneAndUpdate({
-          collection: req.body.collection
+          collection_name: req.body.collection
         }, {
           link: req.body.link,
           imageUrl: data.Location
@@ -332,12 +336,30 @@ routes.get("/collection-names", async (req, res) => {
 });
 routes.get("/my-collections", async (req, res) => {
   try {
-    const owner = req.query.owner?.toLowerCase();
-    const collections = await _models.default.collectionModel.find({
-      owner
-    }).lean().exec();
-    console.log("aj : ***** collections => ", collections);
-    res.status(200).json(collections);
+    var _req$query$owner;
+
+    const owner = (_req$query$owner = req.query.owner) === null || _req$query$owner === void 0 ? void 0 : _req$query$owner.toLowerCase();
+    const token = req.query.token;
+
+    if (owner && token) {
+      const collections = await _models.default.collectionModel.find({
+        $and: [{
+          owner: owner
+        }, {
+          tokens: parseInt(token)
+        }]
+      }).lean().exec();
+      res.status(200).json(collections);
+    } else if (owner) {
+      const collections = await _models.default.collectionModel.find({
+        owner
+      }).lean().exec();
+      res.status(200).json(collections);
+    } else {
+      res.status(400).json({
+        message: "Required value not found"
+      });
+    }
   } catch (error) {
     console.log("[collection names] get error => ", error);
     res.status(500).json({
@@ -359,18 +381,18 @@ routes.put("/insert-token-to-collection", async (req, res) => {
         name: body.name
       }, {
         $push: {
-          'tokens': body.token
+          'tokens': parseInt(body.token)
         }
       });
 
       tokenUpdate.exec(err => {
         if (err) throw err;
-        res.status.json({
+        res.status(200).json({
           message: "Successfully token Added!"
         });
       });
     } else {
-      res.status.json({
+      res.status(200).json({
         message: "Document not found!"
       });
     }
@@ -428,10 +450,14 @@ routes.route("/view-and-like").get(async (req, res) => {
     });
 
     if (obj) {
+      var _body$tokenAddr;
+
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        if (obj.viewedAddresses?.includes(body.address)) {
+        var _obj$viewedAddresses;
+
+        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
           throw new Error("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -446,7 +472,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        if (obj.likedAccounts?.includes(body.address)) {
+        var _obj$likedAccounts;
+
+        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
           throw new Error("Already Liked");
         } //else if
         else {
@@ -604,7 +632,7 @@ routes.route("/view-and-like").get(async (req, res) => {
 
 
       const newUpdatedInfo = await _models.default.viewAndLikeModel.findOneAndUpdate({
-        tokenAddr: body.tokenAddr?.toLowerCase(),
+        tokenAddr: (_body$tokenAddr = body.tokenAddr) === null || _body$tokenAddr === void 0 ? void 0 : _body$tokenAddr.toLowerCase(),
         tokenId: body.tokenId
       }, {
         views: obj.views + body.views,
@@ -614,13 +642,15 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
+      var _body$tokenAddr2, _body$address, _body$address2;
+
       await _models.default.viewAndLikeModel.create({
-        tokenAddr: body.tokenAddr?.toLowerCase(),
+        tokenAddr: (_body$tokenAddr2 = body.tokenAddr) === null || _body$tokenAddr2 === void 0 ? void 0 : _body$tokenAddr2.toLowerCase(),
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
       });
     }
   } catch (error) {
