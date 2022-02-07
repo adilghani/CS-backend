@@ -155,7 +155,7 @@ const adminRegisterModel = _mongoose.default.model('Admins', adminRegiterSchema)
 
 const uploadSliderModel = _mongoose.default.model('slider', uploadSliderSchema);
 
-const uploadfeaturemodel = _mongoose.default.model('FeatureCollection', uploadfeatureSchema);
+const uploadfeaturemodel = _mongoose.default.model('featurecollection', uploadfeatureSchema);
 
 const models = {
   userModel,
