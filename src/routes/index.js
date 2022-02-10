@@ -69,6 +69,16 @@ routes
     res.status(200).json({ ...user });
   });
 
+  routes.post("/verified_user",(req,res)=>{
+    let VerifiedCollection= models.userModel.findOneAndUpdate({address:req.body.address},{
+      isVerified: req.body.isverified
+    })
+    VerifiedCollection.exec((err)=>{
+      if(err) throw err;
+      res.status(200).json({message:"Successfully Verified"})
+    })
+  })
+
 routes.get("/get-all-users", (req, res) => {
     let user = models.userModel.find();
     user.exec((err,data)=>{
@@ -225,6 +235,15 @@ routes
     })
   })
 
+  routes.post("/verified_collection",(req,res)=>{
+    let VerifiedCollection= models.collectionModel.findOneAndUpdate({name:req.body.collection_name},{
+      isVerified: req.body.isverified
+    })
+    VerifiedCollection.exec((err)=>{
+      if(err) throw err;
+      res.status(200).json({message:"Successfully Verified"})
+    })
+  })
 const profilefilePath = path.join(__dirname,"../","../public/commonimage/");
 
 // for file upload
