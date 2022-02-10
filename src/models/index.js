@@ -31,7 +31,8 @@ const userSchema = new mongoose.Schema({
   },
   
   follower:Array,
-  following:Array
+  following:Array,
+  isVerified:{type:Boolean,default:false}
 });
 
 userSchema.plugin(timeStamp);
@@ -62,7 +63,8 @@ const collectionSchema = new mongoose.Schema({
   },
   tokens: {
     type: Array
-  }
+  },
+  isVerified:{type:Boolean,default:false}
 });
 
 const viewAndLikeSchema = new mongoose.Schema({
