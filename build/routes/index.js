@@ -89,6 +89,20 @@ routes.route("/profile").post(async (req, res) => {
   res.status(200).json({ ...user
   });
 });
+routes.post("/verified_user", (req, res) => {
+  let VerifiedCollection = _models.default.userModel.findOneAndUpdate({
+    address: req.body.address
+  }, {
+    isVerified: req.body.isverified
+  });
+
+  VerifiedCollection.exec(err => {
+    if (err) throw err;
+    res.status(200).json({
+      message: "Successfully Verified"
+    });
+  });
+});
 routes.get("/get-all-users", (req, res) => {
   let user = _models.default.userModel.find();
 
@@ -121,12 +135,10 @@ routes.route("/collection").post(async (req, res) => {
         res.send("Successfully token Added!");
       });
     } else {
-      var _body$owner, _body$nftAddress;
-
       await _models.default.collectionModel.create({
         name: body.name,
-        owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
-        nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
+        owner: body.owner?.toLowerCase(),
+        nftAddress: body.nftAddress?.toLowerCase(),
         avatar: body.avatar,
         background: body.background,
         description: body.description,
@@ -143,8 +155,6 @@ routes.route("/collection").post(async (req, res) => {
   }
 }).put(async (req, res) => {
   try {
-    var _body$name;
-
     const {
       body
     } = req;
@@ -158,7 +168,7 @@ routes.route("/collection").post(async (req, res) => {
     }
 
     let data = {
-      name: (_body$name = body.name) === null || _body$name === void 0 ? void 0 : _body$name.toLowerCase()
+      name: body.name?.toLowerCase()
     };
 
     if (!!body.avatar) {
@@ -288,6 +298,20 @@ routes.get("/feature_collection", async (req, res) => {
     });
   });
 });
+routes.post("/verified_collection", (req, res) => {
+  let VerifiedCollection = _models.default.collectionModel.findOneAndUpdate({
+    name: req.body.collection_name
+  }, {
+    isVerified: req.body.isverified
+  });
+
+  VerifiedCollection.exec(err => {
+    if (err) throw err;
+    res.status(200).json({
+      message: "Successfully Verified"
+    });
+  });
+});
 const profilefilePath = path.join(__dirname, "../", "../public/commonimage/"); // for file upload
 
 var Storage = multer.diskStorage({
@@ -336,9 +360,7 @@ routes.get("/collection-names", async (req, res) => {
 });
 routes.get("/my-collections", async (req, res) => {
   try {
-    var _req$query$owner;
-
-    const owner = (_req$query$owner = req.query.owner) === null || _req$query$owner === void 0 ? void 0 : _req$query$owner.toLowerCase();
+    const owner = req.query.owner?.toLowerCase();
     const token = req.query.token;
 
     if (owner && token) {
@@ -450,14 +472,10 @@ routes.route("/view-and-like").get(async (req, res) => {
     });
 
     if (obj) {
-      var _body$tokenAddr;
-
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        var _obj$viewedAddresses;
-
-        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
+        if (obj.viewedAddresses?.includes(body.address)) {
           throw new Error("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -472,9 +490,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        var _obj$likedAccounts;
-
-        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
+        if (obj.likedAccounts?.includes(body.address)) {
           throw new Error("Already Liked");
         } //else if
         else {
@@ -632,7 +648,7 @@ routes.route("/view-and-like").get(async (req, res) => {
 
 
       const newUpdatedInfo = await _models.default.viewAndLikeModel.findOneAndUpdate({
-        tokenAddr: (_body$tokenAddr = body.tokenAddr) === null || _body$tokenAddr === void 0 ? void 0 : _body$tokenAddr.toLowerCase(),
+        tokenAddr: body.tokenAddr?.toLowerCase(),
         tokenId: body.tokenId
       }, {
         views: obj.views + body.views,
@@ -642,15 +658,13 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
-      var _body$tokenAddr2, _body$address, _body$address2;
-
       await _models.default.viewAndLikeModel.create({
-        tokenAddr: (_body$tokenAddr2 = body.tokenAddr) === null || _body$tokenAddr2 === void 0 ? void 0 : _body$tokenAddr2.toLowerCase(),
+        tokenAddr: body.tokenAddr?.toLowerCase(),
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
       });
     }
   } catch (error) {
@@ -888,6 +902,8 @@ routes.post("/nft-collector", (req, res) => {
         metadata: req.body.metadata,
         selectedCat: req.body.selectedCat,
         tokenUri: req.body.tokenUri,
+        chainId: req.body.chainId,
+        relatedCollectionId: req.body.relatedCollectionId,
         status: "pending"
       });
       createNft.save(function () {
@@ -897,6 +913,27 @@ routes.post("/nft-collector", (req, res) => {
       });
     }
   });
+});
+routes.post("/search-nft", (req, res) => {
+  console.log(req.body.name);
+
+  if (req.body.name !== undefined && req.body.name !== null && req.body.name !== false) {
+    let filterData = _models.default.nftControllerModel.find({
+      "metadata.name": {
+        $regex: '.*' + req.body.name + ".*",
+        $options: 'i'
+      }
+    });
+
+    filterData.exec((err, data) => {
+      if (err) throw err;
+      res.status(200).json(data);
+    });
+  } else {
+    res.status(500).json({
+      message: "Data is not"
+    });
+  }
 });
 routes.post("/update-nft-status", (req, res) => {
   let filterData = _models.default.nftControllerModel.findOne({
@@ -1011,6 +1048,85 @@ routes.post("/feature-nft", (req, res) => {
       });
     }
   });
+});
+routes.post("/count-nft-category-vise", (req, res) => {
+  if (req.body.category == undefined && req.body.category == null && req.body.category == false) {
+    res.status(500).json({
+      message: "Data is not defined"
+    });
+  } else if (req.body.category == "All NFTs") {
+    _models.default.nftControllerModel.countDocuments({}, function (err, count) {
+      res.status(202).json(count);
+    });
+  } else {
+    _models.default.nftControllerModel.countDocuments({
+      selectedCat: req.body.category
+    }, function (err, count) {
+      res.status(202).json(count);
+    });
+  }
+});
+routes.post("/nft-category-vise", (req, res) => {
+  if (req.body.category == undefined && req.body.category == null && req.body.category == false) {
+    res.status(500).json({
+      message: "Data is not defined"
+    });
+  } else if (req.body.category == "All NFTs") {
+    let limitedNft = _models.default.nftControllerModel.find().skip((req.body.page - 1) * req.body.size).limit(req.body.size);
+
+    _models.default.nftControllerModel.countDocuments({}, function (err, count) {
+      let totalPage = Math.ceil(count / req.body.size);
+      console.log(totalPage);
+      limitedNft.exec((err, data) => {
+        if (err) throw err;
+
+        if (data[0] !== undefined && data[0] !== null) {
+          res.status(202).json({
+            nft: data,
+            totalPage: totalPage
+          });
+        } else {
+          res.status(500).json({
+            message: "No NFT found"
+          });
+        }
+      });
+    });
+  } else {
+    let limitedNft = _models.default.nftControllerModel.find({
+      selectedCat: req.body.category
+    }).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
+
+    _models.default.nftControllerModel.countDocuments({
+      selectedCat: req.body.category
+    }, function (err, count) {
+      if (err) throw err;
+
+      if (count == undefined || count == null || count == false || count == 0) {
+        res.status(500).json({
+          message: "No NFT found for this Category"
+        });
+      } else {
+        let totalPage = Math.ceil(count / req.body.size);
+        console.log(totalPage);
+        limitedNft.exec((err, data) => {
+          console.log(data);
+          if (err) throw err;
+
+          if (data[0] !== undefined && data[0] !== null) {
+            res.status(202).json({
+              nft: data,
+              totalPage: totalPage
+            });
+          } else {
+            res.status(500).json({
+              message: "No NFT found for this Category"
+            });
+          }
+        });
+      }
+    });
+  }
 });
 const filePath = path.join(__dirname, "../", "../public/sliderimage/"); // for file upload
 
