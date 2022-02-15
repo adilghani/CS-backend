@@ -40,7 +40,11 @@ const userSchema = new _mongoose.default.Schema({
     type: String
   },
   follower: Array,
-  following: Array
+  following: Array,
+  isVerified: {
+    type: Boolean,
+    default: false
+  }
 });
 userSchema.plugin(_helpers.timeStamp);
 const collectionSchema = new _mongoose.default.Schema({
@@ -69,6 +73,10 @@ const collectionSchema = new _mongoose.default.Schema({
   },
   tokens: {
     type: Array
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
   }
 });
 const viewAndLikeSchema = new _mongoose.default.Schema({
@@ -118,7 +126,9 @@ const nftControllerSchema = new _mongoose.default.Schema({
   featured: {
     type: Boolean,
     default: false
-  }
+  },
+  chainId: String,
+  relatedCollectionId: String
 });
 const adminRegiterSchema = new _mongoose.default.Schema({
   walletAddress: {

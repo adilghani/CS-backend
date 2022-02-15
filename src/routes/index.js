@@ -764,6 +764,8 @@ routes.post("/nft-collector",(req, res) => {
         metadata: req.body.metadata,
         selectedCat:req.body.selectedCat,
         tokenUri:req.body.tokenUri,
+        chainId:req.body.chainId,
+        relatedCollectionId:req.body.relatedCollectionId,
         status:"pending"
       })
       createNft.save(function(){
@@ -772,6 +774,20 @@ routes.post("/nft-collector",(req, res) => {
     }
 })
 
+})
+
+routes.post("/search-nft",(req, res) => {
+  console.log(req.body.name)
+  if (req.body.name !==undefined && req.body.name !== null && req.body.name !== false){
+  let filterData=models.nftControllerModel.find({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'}});
+  filterData.exec((err,data)=>{
+        if(err) throw err;
+        res.status(200).json(data)
+      })
+  }
+  else{
+    res.status(500).json({message:"Data is not"})
+  }
 })
 
 routes.post("/update-nft-status",(req, res) => {
@@ -861,6 +877,70 @@ routes.post("/feature-nft",(req, res) => {
     }
   })
 })
+
+routes.post("/count-nft-category-vise",(req, res) => {
+  if (req.body.category ==undefined && req.body.category == null && req.body.category == false){
+    res.status(500).json({message:"Data is not defined"})
+  }
+  else if(req.body.category=="All NFTs"){
+    models.nftControllerModel.countDocuments({}, function(err, count) {
+      res.status(202).json(count)
+    })
+  }
+  else{
+    models.nftControllerModel.countDocuments({selectedCat:req.body.category}, function(err, count) {
+      res.status(202).json(count)
+    })
+  }
+})
+
+
+routes.post("/nft-category-vise",(req, res) => {
+  if (req.body.category ==undefined && req.body.category == null && req.body.category == false){
+    res.status(500).json({message:"Data is not defined"})
+  }
+  else if(req.body.category=="All NFTs"){
+      let limitedNft=models.nftControllerModel.find().skip((req.body.page-1)*req.body.size).limit(req.body.size);
+      models.nftControllerModel.countDocuments({}, function(err, count) {
+      let totalPage=Math.ceil(count/req.body.size);
+      console.log(totalPage)
+      limitedNft.exec((err,data)=>{
+        if(err) throw err;
+        if(data[0]!==undefined && data[0]!==null){
+          res.status(202).json({nft:data,totalPage:totalPage})
+        }
+        else{
+          res.status(500).json({message:"No NFT found"})
+        }
+      })
+    })
+  }
+  else{
+      let limitedNft=models.nftControllerModel.find({selectedCat:req.body.category}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+      models.nftControllerModel.countDocuments({selectedCat:req.body.category}, function(err, count) {
+        if (err) throw err;
+        if(count == undefined || count == null || count == false || count == 0){
+          res.status(500).json({message:"No NFT found for this Category"})
+        }
+        else{
+          let totalPage=Math.ceil(count/req.body.size);
+          console.log(totalPage)
+          limitedNft.exec((err,data)=>{
+            console.log(data)
+            if(err) throw err;
+            if(data[0]!==undefined && data[0]!==null){
+              res.status(202).json({nft:data,totalPage:totalPage})
+            }
+            else{
+              res.status(500).json({message:"No NFT found for this Category"})
+            }
+          })
+        }
+      })
+    }
+})
+
+
 
 const filePath = path.join(__dirname,"../","../public/sliderimage/");
 
