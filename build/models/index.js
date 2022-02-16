@@ -128,7 +128,8 @@ const nftControllerSchema = new _mongoose.default.Schema({
     default: false
   },
   chainId: String,
-  relatedCollectionId: String
+  relatedCollectionId: String,
+  isOnSell: String
 });
 const adminRegiterSchema = new _mongoose.default.Schema({
   walletAddress: {
