@@ -42,10 +42,20 @@ routes.route("/profile").post(async (req, res) => {
     const {
       body
     } = req;
-    await _models.default.userModel.create({ ...body,
+    let check = await _models.default.userModel.findOne({
       address: body.address.toLowerCase()
-    });
-    res.status(200).json("Successfully registered");
+    }).exec();
+
+    if (check == null || check == undefined) {
+      res.status(200).json({
+        message: "This wallet address is already exist"
+      });
+    } else {
+      await _models.default.userModel.create({ ...body,
+        address: body.address.toLowerCase()
+      });
+      res.status(200).json("Successfully registered");
+    }
   } catch (error) {
     console.log("[profile post] error => ", error);
     res.status(500).json({
@@ -158,7 +168,6 @@ routes.route("/collection").post(async (req, res) => {
     const {
       body
     } = req;
-    console.log("aj : **** body => ", body);
     const existingOne = await _models.default.collectionModel.findOne({
       _id: body._id
     });
@@ -230,12 +239,15 @@ routes.route("/collection").post(async (req, res) => {
     const {
       body
     } = req;
-    const existingOne = await _models.default.collectionModel.findOneAndDelete({
+    await _models.default.collectionModel.findOneAndDelete({
       _id: body._id
     });
     return res.status(200).json("Successfully deleted");
   } catch (error) {
     console.log("[collection delete] error => ", error);
+    res.status(500).json({
+      message: error.toString()
+    });
   }
 });
 const featureCollectionPath = path.join(__dirname, "../", "../public/featureCollectionImage/"); // for file upload
@@ -679,7 +691,9 @@ routes.get("/views_and_likes", (req, res) => {
 
   viewAndLike.exec().then(data => {
     res.send(data);
-  }).catch(err => console.log(err));
+  }).catch(err => res.status(500).json({
+    message: error.toString()
+  }));
 });
 routes.post("/usersviews_and_userslikes", (req, res) => {
   let likedNft = [];
@@ -862,14 +876,18 @@ routes.post("/admin-login", (req, res) => {
     } else {
       res.status(400).send("Wallet Not Found");
     }
-  }).catch(err => console.log(err));
+  }).catch(err => res.status(500).json({
+    message: error.toString()
+  }));
 });
 routes.get("/nft-collector", (req, res) => {
   var nftdata = _models.default.nftControllerModel.find();
 
   nftdata.exec().then(data => {
     res.status(200).json(data);
-  }).catch(err => console.log(err));
+  }).catch(err => res.status(500).json({
+    message: error.toString()
+  }));
 });
 routes.post("/nft-collector", (req, res) => {
   let filterData = _models.default.nftControllerModel.findOne({
@@ -915,23 +933,39 @@ routes.post("/nft-collector", (req, res) => {
   });
 });
 routes.post("/search-nft", (req, res) => {
-  console.log(req.body.name);
-
   if (req.body.name !== undefined && req.body.name !== null && req.body.name !== false) {
-    let filterData = _models.default.nftControllerModel.find({
+    let limitedNft = _models.default.nftControllerModel.find({
       "metadata.name": {
         $regex: '.*' + req.body.name + ".*",
         $options: 'i'
       }
-    });
+    }).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
 
-    filterData.exec((err, data) => {
-      if (err) throw err;
-      res.status(200).json(data);
+    _models.default.nftControllerModel.countDocuments({
+      "metadata.name": {
+        $regex: '.*' + req.body.name + ".*",
+        $options: 'i'
+      }
+    }, function (err, count) {
+      let totalPage = Math.ceil(count / req.body.size);
+      limitedNft.exec((err, data) => {
+        if (err) throw err;
+
+        if (data[0] !== undefined && data[0] !== null) {
+          res.status(202).json({
+            nft: data,
+            totalPage: totalPage
+          });
+        } else {
+          res.status(500).json({
+            message: "No NFT found"
+          });
+        }
+      });
     });
   } else {
     res.status(500).json({
-      message: "Data is not"
+      message: "Data is not defined"
     });
   }
 });
@@ -973,7 +1007,6 @@ routes.post("/nft-pagination", (req, res) => {
 
   _models.default.nftControllerModel.countDocuments({}, function (err, count) {
     let totalPage = Math.ceil(count / req.body.size);
-    console.log(totalPage);
     limitedNft.exec((err, data) => {
       if (err) throw err;
 
@@ -999,7 +1032,9 @@ routes.get("/feature-nft", (req, res) => {
         message: "No any Nft is featured"
       });
     }
-  }).catch(err => console.log(err));
+  }).catch(err => res.status(500).json({
+    message: error.toString()
+  }));
 });
 routes.post("/feature-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({
@@ -1076,7 +1111,6 @@ routes.post("/nft-category-vise", (req, res) => {
 
     _models.default.nftControllerModel.countDocuments({}, function (err, count) {
       let totalPage = Math.ceil(count / req.body.size);
-      console.log(totalPage);
       limitedNft.exec((err, data) => {
         if (err) throw err;
 
@@ -1108,9 +1142,7 @@ routes.post("/nft-category-vise", (req, res) => {
         });
       } else {
         let totalPage = Math.ceil(count / req.body.size);
-        console.log(totalPage);
         limitedNft.exec((err, data) => {
-          console.log(data);
           if (err) throw err;
 
           if (data[0] !== undefined && data[0] !== null) {
@@ -1174,7 +1206,6 @@ routes.post("/add_slider", upload, (req, res) => {
             });
             uploadslider.save(err => {
               if (err) throw err;
-              console.log(`File uploaded successfully at ${data.Location}`);
               res.status(200).json({
                 message: "Success"
               });
@@ -1219,7 +1250,6 @@ routes.post("/update_slider", upload, (req, res) => {
 
         uploadslider.exec(err => {
           if (err) throw err;
-          console.log(`File uploaded successfully at ${data.Location}`);
           res.status(200).json({
             message: "Success"
           });
@@ -1263,9 +1293,7 @@ routes.route("/search").get(async (req, res) => {
     const {
       name
     } = req.query;
-    console.log(name); // const resp = await models.userModel.find({
-    //   username: "OneDabLife ",
-    // });
+    console.log(name);
 
     if (name) {
       const collections = await _models.default.collectionModel.find({
@@ -1295,13 +1323,8 @@ routes.route("/search").get(async (req, res) => {
           users: ""
         }
       });
-    } // const obj = await models.viewAndLikeModel
-    //   .findOne({ tokenAddr, tokenId })
-    //   .lean()
-    //   .exec();
-
+    }
   } catch (error) {
-    console.log("Search Error => ", error);
     res.status(500).json({
       message: error.toString()
     });

@@ -29,11 +29,17 @@ routes
   .post(async (req, res) => {
     try {
       const { body } = req;
-      await models.userModel.create({
-        ...body,
-        address: body.address.toLowerCase(),
-      });
-      res.status(200).json("Successfully registered");
+      let check = await models.userModel.findOne({address: body.address.toLowerCase()}).exec();
+      if(check == null || check == undefined){
+        res.status(200).json({ message: "This wallet address is already exist" });
+      }
+      else{
+        await models.userModel.create({
+          ...body,
+          address: body.address.toLowerCase(),
+        });
+        res.status(200).json("Successfully registered");
+      }
     } catch (error) {
       console.log("[profile post] error => ", error);
       res.status(500).json({ message: "Server Error" });
@@ -125,7 +131,6 @@ routes
   .put(async (req, res) => {
     try {
       const { body } = req;
-      console.log("aj : **** body => ", body);
       const existingOne = await models.collectionModel.findOne({
         _id: body._id,
       });
@@ -173,12 +178,13 @@ routes
   .delete(async (req, res) => {
     try {
       const { body } = req;
-      const existingOne = await models.collectionModel.findOneAndDelete({
+      await models.collectionModel.findOneAndDelete({
         _id: body._id,
       });
       return res.status(200).json("Successfully deleted");
     } catch (error) {
       console.log("[collection delete] error => ", error);
+      res.status(500).json({ message: error.toString() });
     }
   });
 
@@ -596,7 +602,7 @@ routes.get("/views_and_likes",(req, res) => {
     .then((data)=>{
       res.send(data);
     })
-    .catch((err)=>console.log(err))
+    .catch((err)=>res.status(500).json({ message: error.toString()}))
 })
 
 routes.post("/usersviews_and_userslikes",(req, res) => {
@@ -729,7 +735,7 @@ routes.post("/admin-login",(req, res) => {
       res.status(400).send("Wallet Not Found")
     }
   })
-  .catch((err)=>console.log(err))
+  .catch((err)=>res.status(500).json({ message: error.toString()}))
 })
 
 routes.get("/nft-collector",(req, res) => {
@@ -738,7 +744,7 @@ routes.get("/nft-collector",(req, res) => {
   .then((data)=>{
     res.status(200).json(data)
   })
-  .catch((err)=>console.log(err))
+  .catch((err)=>res.status(500).json({ message: error.toString()}))
 })
 
 routes.post("/nft-collector",(req, res) => {
@@ -748,7 +754,8 @@ routes.post("/nft-collector",(req, res) => {
     if(data!==null){
       let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
         price: req.body.price,
-        owner:req.body.ownerOf
+        owner:req.body.ownerOf,
+        isOnSell:req.body.isOnSell
       })
       updateNft.exec((err)=>{
         if(err) throw err;
@@ -777,16 +784,24 @@ routes.post("/nft-collector",(req, res) => {
 })
 
 routes.post("/search-nft",(req, res) => {
-  console.log(req.body.name)
   if (req.body.name !==undefined && req.body.name !== null && req.body.name !== false){
-  let filterData=models.nftControllerModel.find({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'}});
-  filterData.exec((err,data)=>{
-        if(err) throw err;
-        res.status(200).json(data)
+    let limitedNft=models.nftControllerModel.find({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'}}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+      models.nftControllerModel.countDocuments({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'}}, function(err, count) {
+        let totalPage=Math.ceil(count/req.body.size);
+    
+        limitedNft.exec((err,data)=>{
+          if(err) throw err;
+          if(data[0]!==undefined && data[0]!==null){
+            res.status(202).json({nft:data,totalPage:totalPage})
+          }
+          else{
+            res.status(500).json({message:"No NFT found"})
+          }
+        })
       })
   }
   else{
-    res.status(500).json({message:"Data is not"})
+    res.status(500).json({message:"Data is not defined"})
   }
 })
 
@@ -820,7 +835,6 @@ routes.post("/nft-pagination",(req, res) => {
   let limitedNft=models.nftControllerModel.find({}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
   models.nftControllerModel.countDocuments({}, function(err, count) {
     let totalPage=Math.ceil(count/req.body.size);
-    console.log(totalPage)
     limitedNft.exec((err,data)=>{
       if(err) throw err;
       if(data[0]!==undefined && data[0]!==null){
@@ -841,7 +855,7 @@ routes.get("/feature-nft",(req, res) => {
       res.status(400).json({message:"No any Nft is featured"})
     }
   })
-  .catch((err)=>console.log(err))
+  .catch((err)=>res.status(500).json({ message: error.toString()}))
 })
 
 routes.post("/feature-nft",(req, res) => {
@@ -903,7 +917,6 @@ routes.post("/nft-category-vise",(req, res) => {
       let limitedNft=models.nftControllerModel.find().skip((req.body.page-1)*req.body.size).limit(req.body.size);
       models.nftControllerModel.countDocuments({}, function(err, count) {
       let totalPage=Math.ceil(count/req.body.size);
-      console.log(totalPage)
       limitedNft.exec((err,data)=>{
         if(err) throw err;
         if(data[0]!==undefined && data[0]!==null){
@@ -924,9 +937,7 @@ routes.post("/nft-category-vise",(req, res) => {
         }
         else{
           let totalPage=Math.ceil(count/req.body.size);
-          console.log(totalPage)
           limitedNft.exec((err,data)=>{
-            console.log(data)
             if(err) throw err;
             if(data[0]!==undefined && data[0]!==null){
               res.status(202).json({nft:data,totalPage:totalPage})
@@ -987,7 +998,6 @@ routes.post("/add_slider",upload,(req,res)=>{
             })
             uploadslider.save((err)=>{
               if(err) throw err;
-              console.log(`File uploaded successfully at ${data.Location}`)
               res.status(200).json({message:"Success"})
             })
         });
@@ -1023,7 +1033,6 @@ routes.post("/update_slider",upload,(req,res)=>{
         })
         uploadslider.exec((err)=>{
           if(err) throw err;
-          console.log(`File uploaded successfully at ${data.Location}`)
           res.status(200).json({message:"Success"})
         })
     });
@@ -1059,9 +1068,6 @@ routes.route("/search").get(async (req, res) => {
   try {
     const { name } = req.query;
     console.log(name);
-    // const resp = await models.userModel.find({
-    //   username: "OneDabLife ",
-    // });
     if(name){
     const collections = await models.collectionModel.find({ name: { $regex:'^' + name, $options: 'i'} });
     const users = await models.userModel.find({ userName: { $regex:'^' + name, $options: 'i'} });
@@ -1084,12 +1090,7 @@ routes.route("/search").get(async (req, res) => {
         }
     })
   }
-    // const obj = await models.viewAndLikeModel
-    //   .findOne({ tokenAddr, tokenId })
-    //   .lean()
-    //   .exec();
   } catch (error) {
-    console.log("Search Error => ", error);
     res.status(500).json({ message: error.toString() });
   }
 });
