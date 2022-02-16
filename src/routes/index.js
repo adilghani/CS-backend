@@ -910,12 +910,13 @@ routes.post("/count-nft-category-vise",(req, res) => {
 
 
 routes.post("/nft-category-vise",(req, res) => {
+  if(isMarketPlace){
   if (req.body.category ==undefined && req.body.category == null && req.body.category == false){
     res.status(500).json({message:"Data is not defined"})
   }
   else if(req.body.category=="All NFTs"){
-      let limitedNft=models.nftControllerModel.find().skip((req.body.page-1)*req.body.size).limit(req.body.size);
-      models.nftControllerModel.countDocuments({}, function(err, count) {
+      let limitedNft=models.nftControllerModel.find({isOnSell:true,status:"active"}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+      models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
       let totalPage=Math.ceil(count/req.body.size);
       limitedNft.exec((err,data)=>{
         if(err) throw err;
@@ -929,8 +930,8 @@ routes.post("/nft-category-vise",(req, res) => {
     })
   }
   else{
-      let limitedNft=models.nftControllerModel.find({selectedCat:req.body.category}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
-      models.nftControllerModel.countDocuments({selectedCat:req.body.category}, function(err, count) {
+      let limitedNft=models.nftControllerModel.find({selectedCat:req.body.category,isOnSell:true,status:"active"}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+      models.nftControllerModel.countDocuments({selectedCat:req.body.category,isOnSell:true,status:"active"}, function(err, count) {
         if (err) throw err;
         if(count == undefined || count == null || count == false || count == 0){
           res.status(500).json({message:"No NFT found for this Category"})
@@ -949,6 +950,22 @@ routes.post("/nft-category-vise",(req, res) => {
         }
       })
     }
+  }
+  else{
+    let limitedNft=models.nftControllerModel.find({}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+      models.nftControllerModel.countDocuments({}, function(err, count) {
+      let totalPage=Math.ceil(count/req.body.size);
+      limitedNft.exec((err,data)=>{
+        if(err) throw err;
+        if(data[0]!==undefined && data[0]!==null){
+          res.status(202).json({nft:data,totalPage:totalPage})
+        }
+        else{
+          res.status(500).json({message:"No NFT found"})
+        }
+      })
+    })
+  }
 })
 
 
