@@ -45,8 +45,9 @@ const userSchema = new _mongoose.default.Schema({
     type: Boolean,
     default: false
   }
+}, {
+  timestamps: true
 });
-userSchema.plugin(_helpers.timeStamp);
 const collectionSchema = new _mongoose.default.Schema({
   name: {
     type: String,
@@ -78,6 +79,8 @@ const collectionSchema = new _mongoose.default.Schema({
     type: Boolean,
     default: false
   }
+}, {
+  timestamps: true
 });
 const viewAndLikeSchema = new _mongoose.default.Schema({
   tokenAddr: {
@@ -98,6 +101,8 @@ const viewAndLikeSchema = new _mongoose.default.Schema({
   likedAccounts: {
     type: [String]
   }
+}, {
+  timestamps: true
 });
 const nftControllerSchema = new _mongoose.default.Schema({
   tokenAddr: {
@@ -109,7 +114,7 @@ const nftControllerSchema = new _mongoose.default.Schema({
     required: true
   },
   price: {
-    type: String
+    type: Number
   },
   owner: {
     type: String
@@ -129,13 +134,20 @@ const nftControllerSchema = new _mongoose.default.Schema({
   },
   chainId: String,
   relatedCollectionId: String,
-  isOnSell: String
+  isOnSell: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true
 });
 const adminRegiterSchema = new _mongoose.default.Schema({
   walletAddress: {
     type: String,
     required: true
   }
+}, {
+  timestamps: true
 });
 const uploadSliderSchema = new _mongoose.default.Schema({
   slider: String,
@@ -144,6 +156,8 @@ const uploadSliderSchema = new _mongoose.default.Schema({
     required: true
   },
   link: String
+}, {
+  timestamps: true
 });
 const uploadfeatureSchema = new _mongoose.default.Schema({
   collection_name: String,
@@ -152,6 +166,8 @@ const uploadfeatureSchema = new _mongoose.default.Schema({
     required: true
   },
   link: String
+}, {
+  timestamps: true
 });
 
 const userModel = _mongoose.default.model('user', userSchema);
