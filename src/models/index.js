@@ -33,9 +33,7 @@ const userSchema = new mongoose.Schema({
   follower:Array,
   following:Array,
   isVerified:{type:Boolean,default:false}
-});
-
-userSchema.plugin(timeStamp);
+},{timestamps: true});
 
 const collectionSchema = new mongoose.Schema({
   name: {
@@ -65,7 +63,7 @@ const collectionSchema = new mongoose.Schema({
     type: Array
   },
   isVerified:{type:Boolean,default:false}
-});
+},{timestamps: true});
 
 const viewAndLikeSchema = new mongoose.Schema({
   tokenAddr: {
@@ -86,7 +84,7 @@ const viewAndLikeSchema = new mongoose.Schema({
   likedAccounts: {
     type: [String]
   }
-});
+},{timestamps: true});
 
 const nftControllerSchema = new mongoose.Schema({
   tokenAddr: {
@@ -98,7 +96,7 @@ const nftControllerSchema = new mongoose.Schema({
     required: true
   },
   price: {
-    type: String
+    type: Number
   },
   owner: {
     type: String
@@ -116,14 +114,14 @@ const nftControllerSchema = new mongoose.Schema({
   chainId:String,
   relatedCollectionId:String,
   isOnSell:{type:Boolean,default:false}
-});
+},{timestamps: true});
 
 const adminRegiterSchema = new mongoose.Schema({
   walletAddress: {
     type: String,
     required: true
   }
-});
+},{timestamps: true});
 
 const uploadSliderSchema = new mongoose.Schema({
   slider:String,
@@ -132,7 +130,7 @@ const uploadSliderSchema = new mongoose.Schema({
     required: true
   },
   link:String
-});
+},{timestamps: true});
 
 const uploadfeatureSchema = new mongoose.Schema({
   collection_name:String,
@@ -141,7 +139,7 @@ const uploadfeatureSchema = new mongoose.Schema({
     required: true
   },
   link:String
-});
+},{timestamps: true});
 const userModel = mongoose.model('user', userSchema);
 const collectionModel = mongoose.model('collection', collectionSchema);
 const viewAndLikeModel = mongoose.model('viewAndLike', viewAndLikeSchema);
