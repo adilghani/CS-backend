@@ -763,7 +763,7 @@ routes.post("/price-range-nft",(req, res) => {
     filterData.exec(async(err,data)=>{
       if (err) throw err;
       if(data[0]==undefined || data[0]==null){
-        res.status(200).json({message:"No NFT found in this Price range",totalPage:totalPage});
+        res.status(200).json({message:"No NFT found in this Price range",totalPage:totalPage,errs:true});
       }
       else{
         res.status(200).json({nft:data,totalPage:totalPage});
@@ -777,7 +777,7 @@ routes.get("/oldest-nft",(req, res) => {
     filterData.exec(async(err,data)=>{
       if (err) throw err;
       if(data[0]==undefined || data[0]==null){
-        res.status(200).json({message:"No NFT found"});
+        res.status(200).json({message:"No NFT found",errs:true});
       }
       else{
         res.status(200).json({nft:data});
@@ -790,7 +790,7 @@ routes.get("/newest-nft",(req, res) => {
     filterData.exec(async(err,data)=>{
       if (err) throw err;
       if(data[0]==undefined || data[0]==null){
-        res.status(200).json({message:"No NFT found"});
+        res.status(200).json({message:"No NFT found",errs:true});
       }
       else{
         res.status(200).json({nft:data});
