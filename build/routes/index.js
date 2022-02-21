@@ -872,25 +872,30 @@ routes.post("/most-liked-nft", (req, res) => {
         let temp = {};
 
         let filterNft = _models.default.nftControllerModel.findOne({
-          tokenId: data.tokenId
+          tokenId: data.tokenId,
+          isOnSell: true,
+          status: "active"
         });
 
         filterNft.exec((err, nft) => {
           if (err) throw err;
-          temp.tokenAddr = nft.tokenAddr;
-          temp.tokenId = nft.tokenId;
-          temp.price = nft.price;
-          temp.owner = nft.owner;
-          temp.metadata = nft.metadata;
-          temp.tokenUri = nft.tokenUri;
-          temp.selectedCat = nft.selectedCat;
-          temp.status = nft.status;
-          temp.chainId = nft.chainId;
-          temp.relatedCollectionId = nft.relatedCollectionId;
-          temp.featured = nft.featured;
-          temp.isOnSell = nft.isOnSell;
-          temp.likes = data.likes;
-          mostLikeNft.push(temp);
+
+          if (nft !== null && nft !== undefined) {
+            temp.tokenAddr = nft.tokenAddr;
+            temp.tokenId = nft.tokenId;
+            temp.price = nft.price;
+            temp.owner = nft.owner;
+            temp.metadata = nft.metadata;
+            temp.tokenUri = nft.tokenUri;
+            temp.selectedCat = nft.selectedCat;
+            temp.status = nft.status;
+            temp.chainId = nft.chainId;
+            temp.relatedCollectionId = nft.relatedCollectionId;
+            temp.featured = nft.featured;
+            temp.isOnSell = nft.isOnSell;
+            temp.likes = data.likes;
+            mostLikeNft.push(temp);
+          }
         });
       }
 
@@ -922,25 +927,30 @@ routes.post("/least-liked-nft", (req, res) => {
         let temp = {};
 
         let filterNft = _models.default.nftControllerModel.findOne({
-          tokenId: data.tokenId
+          tokenId: data.tokenId,
+          isOnSell: true,
+          status: "active"
         });
 
         filterNft.exec((err, nft) => {
           if (err) throw err;
-          temp.tokenAddr = nft.tokenAddr;
-          temp.tokenId = nft.tokenId;
-          temp.price = nft.price;
-          temp.owner = nft.owner;
-          temp.metadata = nft.metadata;
-          temp.tokenUri = nft.tokenUri;
-          temp.selectedCat = nft.selectedCat;
-          temp.status = nft.status;
-          temp.chainId = nft.chainId;
-          temp.relatedCollectionId = nft.relatedCollectionId;
-          temp.featured = nft.featured;
-          temp.isOnSell = nft.isOnSell;
-          temp.likes = data.likes;
-          mostLikeNft.push(temp);
+
+          if (nft !== null && nft !== undefined) {
+            temp.tokenAddr = nft.tokenAddr;
+            temp.tokenId = nft.tokenId;
+            temp.price = nft.price;
+            temp.owner = nft.owner;
+            temp.metadata = nft.metadata;
+            temp.tokenUri = nft.tokenUri;
+            temp.selectedCat = nft.selectedCat;
+            temp.status = nft.status;
+            temp.chainId = nft.chainId;
+            temp.relatedCollectionId = nft.relatedCollectionId;
+            temp.featured = nft.featured;
+            temp.isOnSell = nft.isOnSell;
+            temp.likes = data.likes;
+            mostLikeNft.push(temp);
+          }
         });
       }
 
@@ -958,6 +968,8 @@ routes.post("/least-liked-nft", (req, res) => {
 });
 routes.post("/price-range-nft", (req, res) => {
   let filterData = _models.default.nftControllerModel.find({
+    isOnSell: true,
+    status: "active",
     price: {
       $gt: req.body.startPrice,
       $lt: req.body.endPrice
@@ -965,6 +977,8 @@ routes.post("/price-range-nft", (req, res) => {
   }).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
 
   _models.default.nftControllerModel.countDocuments({
+    isOnSell: true,
+    status: "active",
     price: {
       $gt: req.body.startPrice,
       $lt: req.body.endPrice
@@ -989,7 +1003,10 @@ routes.post("/price-range-nft", (req, res) => {
   });
 });
 routes.get("/oldest-nft", (req, res) => {
-  let filterData = _models.default.nftControllerModel.find().limit(1).sort({
+  let filterData = _models.default.nftControllerModel.find({
+    isOnSell: true,
+    status: "active"
+  }).limit(1).sort({
     $natural: 1
   });
 
@@ -1008,7 +1025,10 @@ routes.get("/oldest-nft", (req, res) => {
   });
 });
 routes.get("/newest-nft", (req, res) => {
-  let filterData = _models.default.nftControllerModel.find().limit(1).sort({
+  let filterData = _models.default.nftControllerModel.find({
+    isOnSell: true,
+    status: "active"
+  }).limit(1).sort({
     $natural: -1
   });
 
