@@ -675,85 +675,60 @@ routes.post("/update-nft-status",(req, res) => {
 
 })
 
-routes.post("/most-liked-nft",(req, res) => {
-  let mostLikeNft=[]
-  let filterData=models.viewAndLikeModel.find().skip((req.body.page-1)*req.body.size).limit(req.body.size).sort({likes:-1});
-  models.viewAndLikeModel.countDocuments({}, function(err, count) {
-    let totalPage=Math.ceil(count/req.body.size);  
-    filterData.exec(async(err,datas)=>{
-      if (err) throw err;
-      for await (const data of datas){
-        let temp={};
-        let filterNft=models.nftControllerModel.findOne({tokenId:data.tokenId,isOnSell:true,status:"active"});
-        filterNft.exec((err,nft)=>{
-          if(err) throw err;
-          if(nft !== null && nft !== undefined){
-            temp.tokenAddr=nft.tokenAddr;
-            temp.tokenId=nft.tokenId;
-            temp.price=nft.price;
-            temp.owner=nft.owner;
-            temp.metadata=nft.metadata;
-            temp.tokenUri=nft.tokenUri;
-            temp.selectedCat=nft.selectedCat;
-            temp.status=nft.status;
-            temp.chainId=nft.chainId;
-            temp.relatedCollectionId=nft.relatedCollectionId;
-            temp.featured=nft.featured;
-            temp.isOnSell=nft.isOnSell;
-            temp.likes=data.likes;
-            mostLikeNft.push(temp)
-          }
-        })
-      }
-      setTimeout(()=>{
-        mostLikeNft.sort(function(a, b) {
-          return parseFloat(b.likes) - parseFloat(a.likes);
-      });
-        res.status(200).json({mostLikedNft:mostLikeNft,totalPage:totalPage});
-      },3000)
-    })
-  })
+routes.post("/most-liked-nft",async (req, res) => {
+  // let leastLikeNft=[]
+  let filterData=await models.nftControllerModel.aggregate([
+    {$match : {isOnSell:true,status:"active"}},
+    {$lookup: {
+      from: "viewandlikes", // collection to join
+      localField: "tokenId",//field from the input documents
+      foreignField: "tokenId",//field from the documents of the "from" collection
+      as: "likes"// output array field
+      }},
+      { $unwind : "$likes" },
+      {$addFields: {"likes": "$likes.likes"}},
+      { "$sort": {"likes":-1} },
+      {$facet: {
+        data: [
+          { $skip : (req.body.page-1)*req.body.size},
+          { $limit : req.body.size }
+        ],
+        Total:[
+          { $group:{ _id :null ,count:{$sum:1}}}
+        ]
+      }}
+  ]).exec();
+  let count=filterData[0].Total[0].count;
+  let totalPage=Math.ceil(count/req.body.size);
+  res.status(200).json({leastLikedNft:filterData[0].data,totalPage:totalPage});
 })
 
-routes.post("/least-liked-nft",(req, res) => {
-  let mostLikeNft=[]
-  let filterData=models.viewAndLikeModel.find().skip((req.body.page-1)*req.body.size).limit(req.body.size).sort({likes:1});
-  models.viewAndLikeModel.countDocuments({}, function(err, count) {
-    let totalPage=Math.ceil(count/req.body.size);  
-    filterData.exec(async(err,datas)=>{
-      if (err) throw err;
-      for await (const data of datas){
-        let temp={};
-        let filterNft=models.nftControllerModel.findOne({tokenId:data.tokenId,isOnSell:true,status:"active"});
-        filterNft.exec((err,nft)=>{
-          if(err) throw err;
-          if(nft!==null && nft!==undefined)
-            {
-            temp.tokenAddr=nft.tokenAddr;
-            temp.tokenId=nft.tokenId;
-            temp.price=nft.price;
-            temp.owner=nft.owner;
-            temp.metadata=nft.metadata;
-            temp.tokenUri=nft.tokenUri;
-            temp.selectedCat=nft.selectedCat;
-            temp.status=nft.status;
-            temp.chainId=nft.chainId;
-            temp.relatedCollectionId=nft.relatedCollectionId;
-            temp.featured=nft.featured;
-            temp.isOnSell=nft.isOnSell;
-            temp.likes=data.likes;
-            mostLikeNft.push(temp)
-          }
-        })
-      }
-      setTimeout(()=>{
-        mostLikeNft.sort(function(a, b) {
-          return parseFloat(a.likes) - parseFloat(b.likes);
-      });
-        res.status(200).json({mostLikedNft:mostLikeNft,totalPage:totalPage});
-      },3000)
-    })
-  })
+routes.post("/least-liked-nft",async (req, res) => {
+  // let leastLikeNft=[]
+  let filterData=await models.nftControllerModel.aggregate([
+    {$match : {isOnSell:true,status:"active"}},
+    {$lookup: {
+      from: "viewandlikes", // collection to join
+      localField: "tokenId",//field from the input documents
+      foreignField: "tokenId",//field from the documents of the "from" collection
+      as: "likes"// output array field
+      }},
+      { $unwind : "$likes" },
+      {$addFields: {"likes": "$likes.likes"}},
+      { "$sort": {"likes":1} },
+      {$facet: {
+        data: [
+          { $skip : (req.body.page-1)*req.body.size},
+          { $limit : req.body.size }
+        ],
+        Total:[
+          { $group:{ _id :null ,count:{$sum:1}}}
+        ]
+      }}
+  ]).exec();
+  let count=filterData[0].Total[0].count;
+  let totalPage=Math.ceil(count/req.body.size);
+  res.status(200).json({leastLikedNft:filterData[0].data,totalPage:totalPage});
 })
 
 routes.post("/price-range-nft",(req, res) => {
