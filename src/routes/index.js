@@ -605,6 +605,7 @@ routes.post("/nft-collector",(req, res) => {
       let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
         price: req.body.price,
         owner:req.body.ownerOf,
+        selectedCat:req.body.selectedCat,
         isOnSell:req.body.isOnSell
       })
       updateNft.exec((err)=>{
