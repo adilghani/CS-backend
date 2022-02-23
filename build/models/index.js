@@ -111,7 +111,8 @@ const nftControllerSchema = new _mongoose.default.Schema({
   },
   tokenId: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   price: {
     type: Number

@@ -633,6 +633,22 @@ routes.post("/nft-collector",(req, res) => {
 
 })
 
+routes.post("/insert-multiple-nft",async (req, res) => {
+  try{
+    if(req.body.nfts.length<1){
+      res.status(400).json({message:"NFT array not defined"})
+    }
+    else{
+      await models.nftControllerModel.insertMany(req.body.nfts, {ordered: false})
+      .catch(err=>{})
+      res.status(200).json({message:"Successfully stored"})
+    }
+  }
+  catch(err) {
+    console.error(err);
+  }
+})
+
 routes.post("/search-nft",(req, res) => {
   if (req.body.name !==undefined && req.body.name !== null && req.body.name !== false){
     let limitedNft=models.nftControllerModel.find({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'}}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
