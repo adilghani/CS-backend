@@ -629,6 +629,77 @@ routes.post("/nft-collector",(req, res) => {
 })
 })
 
+routes.post("/external-nft",(req, res) => {
+  try{
+    let query;
+    if(parseInt(req.body.chainId)==56 || String(req.body.chainId)=="0x38"){
+      query={
+        owner:req.body.owner,
+        chainId:{decimal:56,hexa:"0x38"},
+        $and:[
+          {tokenAddr: {$ne:"0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0"}},
+          {tokenAddr: {$ne:"0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43"}},
+          {tokenAddr: {$ne:"0xA84ABA462A3dc12A5874c8D0D61d757256C905a5"}},
+          {tokenAddr: {$ne:"0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE"}},
+          {tokenAddr: {$ne:"0x69903cd9dBBEC1bcaB81E1ffe003260e9e487Ca4"}},
+          {tokenAddr: {$ne:"0xe9e7cea3dedca5984780bafc599bd69add087d56"}}
+        ],
+      }
+    }
+    else if(parseInt(req.body.chainId)==97 || String(req.body.chainId)=="0x61"){
+      query={
+        owner:req.body.owner,
+        chainId:{decimal:97,hexa:"0x61"},
+        $and:[
+          {tokenAddr: {$ne:"0x69536bdf4B18499181EB386B0E4019a28C4Fb096"}},
+          {tokenAddr: {$ne:"0xA4fb840986B10aC44aA893793cfe755c81c3740D"}},
+          {tokenAddr: {$ne:"0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D"}},
+          {tokenAddr: {$ne:"0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"}},
+          {tokenAddr: {$ne:"0x51c19275686d84c1553f3edd2945dba6ec0c7de4"}},
+          {tokenAddr: {$ne:"0x8301f2213c0eed49a7e28ae4c3e91722919b8b47"}}
+        ],
+      }
+    }
+    else if(parseInt(req.body.chainId)==4 || String(req.body.chainId)=="0x4"){
+      query={
+        owner:req.body.owner,
+        chainId:{decimal:4,hexa:"0x4"},
+        $and:[
+          {tokenAddr: {$ne:"0xDB753bacDFb788c4d70CEc237F898db21017B11d"}},
+          {tokenAddr: {$ne:"0x848655Ccc2E571cA9470954BF08C4Eab3436830B"}},
+          {tokenAddr: {$ne:"0x8A36a5395CAa70da6545f030BFB659Fc8e820A59"}}
+        ],
+      }
+    }
+    else if(parseInt(req.body.chainId)==1 || String(req.body.chainId)=="0x1"){
+      query={
+        owner:req.body.owner,
+        chainId:{decimal:1,hexa:"0x1"},
+      }
+    }
+    else if(parseInt(req.body.chainId)==137 || String(req.body.chainId)=="0x89"){
+      query={
+        owner:req.body.owner,
+        chainId:{decimal:137,hexa:"0x89"},
+      }
+    }
+    else if(parseInt(req.body.chainId)==80001 || String(req.body.chainId)=="0x13881"){
+      query={
+        owner:req.body.owner,
+        chainId:{decimal:80001,hexa:"0x13881"},
+      }
+    }
+    let externalNft= models.nftControllerModel.find(query)
+    externalNft.exec((err,data)=>{
+      if(err) throw err;
+      res.status(200).json(data)
+    })
+  }
+  catch(err) {
+    console.error(err);
+  }
+})
+
 routes.post("/insert-multiple-nft",async (req, res) => {
   try{
     if(req.body.nfts.length<1){

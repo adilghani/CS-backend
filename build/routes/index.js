@@ -826,6 +826,23 @@ routes.post("/nft-collector", (req, res) => {
     }
   });
 });
+routes.post("/update-nft-collector", (req, res) => {
+  let updateNft = _models.default.nftControllerModel.updateMany({
+    tokenAddr: {
+      '$regex': '^' + req.body.tokenAddr + '$',
+      "$options": "i"
+    }
+  }, {
+    chainId: req.body.chain
+  });
+
+  updateNft.exec(err => {
+    if (err) throw err;
+    res.status(200).json({
+      message: "Updated Success"
+    });
+  });
+});
 routes.post("/insert-multiple-nft", async (req, res) => {
   try {
     if (req.body.nfts.length < 1) {
