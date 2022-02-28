@@ -111,7 +111,7 @@ const nftControllerSchema = new mongoose.Schema({
   selectedCat:String,
   status:String,
   featured:{type:Boolean,default:false},
-  chainId:String,
+  chainId:Object,
   relatedCollectionId:String,
   isOnSell:{type:Boolean,default:false}
 },{timestamps: true});
