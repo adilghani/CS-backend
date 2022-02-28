@@ -350,11 +350,7 @@ routes
   .get(async (req, res) => {
     try {
       const { tokenAddr, tokenId } = req.query;
-
-      const obj = await models.viewAndLikeModel
-        .findOne({ tokenAddr, tokenId })
-        .lean()
-        .exec();
+      const obj = await models.viewAndLikeModel.findOne({ tokenAddr: { '$regex' : '^'+req.query.tokenAddr+'$', "$options": "i" }, tokenId:req.query.tokenId }).lean().exec();
 
       if (obj) {
         res.status(200).json({ ...obj });
@@ -378,7 +374,7 @@ routes
       const { body } = req;
       console.log({ body });
       const obj = await models.viewAndLikeModel.findOne({
-        tokenAddr: body.tokenAddr,
+        tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" },
         tokenId: body.tokenId,
       });
       console.log({ obj });
@@ -396,7 +392,7 @@ routes
             throw new Error("Already viewed");
           } else {
             await models.viewAndLikeModel.findOneAndUpdate(
-              { tokenAddr: body.tokenAddr, tokenId: body.tokenId },
+              { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
               { viewedAddresses: [...obj.viewedAddresses, body.address] },
               { new: true }
             );
@@ -415,14 +411,14 @@ routes
           //else if
           else {
             await models.viewAndLikeModel.findOneAndUpdate(
-              { tokenAddr: body.tokenAddr, tokenId: body.tokenId },
+              { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
               { likedAccounts: [...obj.likedAccounts, body.address] },
               { new: true }
             );
           }
         }
         const newUpdatedInfo = await models.viewAndLikeModel.findOneAndUpdate(
-          { tokenAddr: body.tokenAddr?.toLowerCase(), tokenId: body.tokenId },
+          { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
           {
             views: obj.views + body.views,
             likes: obj.likes + body.likes,
@@ -432,7 +428,7 @@ routes
         res.status(200).json(newUpdatedInfo);
       } else {
         await models.viewAndLikeModel.create({
-          tokenAddr: body.tokenAddr?.toLowerCase(),
+          tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" },
           tokenId: body.tokenId,
           views: body.views > 0 ? 1 : 0,
           likes: body.likes > 0 ? 1 : 0,
@@ -460,7 +456,7 @@ routes.post("/usersviews_and_userslikes",(req, res) => {
     var like=models.viewAndLikeModel.find({likedAccounts:req.body.userAddress});
     like.exec((err,data)=>{
       data.forEach(function(token){
-        let nftdata=models.nftControllerModel.findOne({tokenId:token.tokenId});
+        let nftdata=models.nftControllerModel.findOne({tokenId:token.tokenId,tokenAddr: { '$regex' : '^'+token.tokenAddr+'$', "$options": "i" }});
         nftdata.exec((err,nft)=>{
           if (err) throw err
           likedNft.push(nft)
@@ -476,7 +472,7 @@ routes.post("/usersviews",(req, res) => {
     var view=models.viewAndLikeModel.find({viewedAddresses:req.body.userAddress});
     view.exec((err,data)=>{
       data.forEach(function(token){
-        let nftdata=models.nftControllerModel.findOne({tokenId:token.tokenId});
+        let nftdata=models.nftControllerModel.findOne({tokenId:token.tokenId,tokenAddr: { '$regex' : '^'+token.tokenAddr+'$', "$options": "i" }});
         nftdata.exec((err,nft)=>{
           if (err) throw err
           viewedNft.push(nft)
@@ -598,11 +594,11 @@ routes.get("/nft-collector",(req, res) => {
 })
 
 routes.post("/nft-collector",(req, res) => {
-  let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
+  let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
   filterData.exec((err,data)=>{
     if (err) throw err;
     if(data!==null){
-      let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
+      let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId,tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
         price: req.body.price,
         owner:req.body.ownerOf,
         selectedCat:req.body.selectedCat,
@@ -631,7 +627,6 @@ routes.post("/nft-collector",(req, res) => {
     });
     }
 })
-
 })
 
 routes.post("/insert-multiple-nft",async (req, res) => {
@@ -640,9 +635,33 @@ routes.post("/insert-multiple-nft",async (req, res) => {
       res.status(400).json({message:"NFT array not defined"})
     }
     else{
-      await models.nftControllerModel.insertMany(req.body.nfts, {ordered: false})
-      .catch(err=>{})
-      res.status(200).json({message:"Successfully stored"})
+      let nfts=req.body.nfts;
+      let i=0;
+      storeNFT(0);
+      async function storeNFT(i){
+        let check = await models.nftControllerModel.findOne({tokenId: nfts[i].tokenId , tokenAddr: { '$regex' : '^'+nfts[i].tokenAddr+'$', "$options": "i" }}).exec();
+        if(check==null){
+           await new models.nftControllerModel({
+              tokenAddr: nfts[i].tokenAddr,
+              tokenId: nfts[i].tokenId,
+              price: nfts[i].price,
+              owner:nfts[i].ownerOf,
+              metadata: nfts[i].metadata,
+              selectedCat:nfts[i].selectedCat,
+              tokenUri:nfts[i].tokenUri,
+              chainId:nfts[i].chainId,
+              relatedCollectionId:nfts[i].relatedCollectionId,
+              status:"pending"
+          }).save();
+        }
+        if(i==nfts.length-1){
+          res.status(200).json({message:"Successfully stored"})
+        }
+        else{
+          i++;
+          await storeNFT(i);
+        }
+      }
     }
   }
   catch(err) {
@@ -673,11 +692,11 @@ routes.post("/search-nft",(req, res) => {
 })
 
 routes.post("/update-nft-status",(req, res) => {
-  let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
+  let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
   filterData.exec((err,data)=>{
     if (err) throw err;
     if(data!==undefined && data!==null){
-      let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
+      let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
         status: req.body.status,
       })
       updateNft.exec((err)=>{
@@ -693,13 +712,23 @@ routes.post("/update-nft-status",(req, res) => {
 })
 
 routes.post("/most-liked-nft",async (req, res) => {
-  // let leastLikeNft=[]
   let filterData=await models.nftControllerModel.aggregate([
     {$match : {isOnSell:true,status:"active"}},
     {$lookup: {
       from: "viewandlikes", // collection to join
-      localField: "tokenId",//field from the input documents
-      foreignField: "tokenId",//field from the documents of the "from" collection
+      let: {tokenAddr: "$tokenAddr", tokenId: "$tokenId"},
+					pipeline: [
+						{
+							$match:
+								{
+									$expr:
+										{
+											$and:
+												[{$eq: ["$tokenAddr", "$$tokenAddr"]},{$eq: ["$tokenId", "$$tokenId"]} ]
+										}
+								}
+						}
+					],
       as: "likes"// output array field
       }},
       { $unwind : "$likes" },
@@ -717,7 +746,7 @@ routes.post("/most-liked-nft",async (req, res) => {
   ]).exec();
   let count=filterData[0].Total[0].count;
   let totalPage=Math.ceil(count/req.body.size);
-  res.status(200).json({leastLikedNft:filterData[0].data,totalPage:totalPage});
+  res.status(200).json({mostLikedNft:filterData[0].data,totalPage:totalPage});
 })
 
 routes.post("/least-liked-nft",async (req, res) => {
@@ -726,8 +755,19 @@ routes.post("/least-liked-nft",async (req, res) => {
     {$match : {isOnSell:true,status:"active"}},
     {$lookup: {
       from: "viewandlikes", // collection to join
-      localField: "tokenId",//field from the input documents
-      foreignField: "tokenId",//field from the documents of the "from" collection
+      let: {tokenAddr: "$tokenAddr", tokenId: "$tokenId"},
+					pipeline: [
+						{
+							$match:
+								{
+									$expr:
+										{
+											$and:
+												[{$eq: ["$tokenAddr", "$$tokenAddr"]},{$eq: ["$tokenId", "$$tokenId"]} ]
+										}
+								}
+						}
+					],
       as: "likes"// output array field
       }},
       { $unwind : "$likes" },
@@ -832,12 +872,12 @@ routes.post("/feature-nft",(req, res) => {
       res.status(202).json({message:"Minimum 3 should be featured"})
     }
     else{
-      let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId});
+      let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
       filterData.exec((err,data)=>{
         if (err) throw err;
         if(data!==undefined && data!==null){
           if(data.status=="active"){
-            let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId},{
+            let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
               featured: req.body.isFeatured,
             })
             updateNft.exec((err)=>{
