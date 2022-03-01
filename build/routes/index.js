@@ -145,10 +145,12 @@ routes.route("/collection").post(async (req, res) => {
         res.send("Successfully token Added!");
       });
     } else {
+      var _body$owner, _body$nftAddress;
+
       await _models.default.collectionModel.create({
         name: body.name,
-        owner: body.owner?.toLowerCase(),
-        nftAddress: body.nftAddress?.toLowerCase(),
+        owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
+        nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
         avatar: body.avatar,
         background: body.background,
         description: body.description,
@@ -165,6 +167,8 @@ routes.route("/collection").post(async (req, res) => {
   }
 }).put(async (req, res) => {
   try {
+    var _body$name;
+
     const {
       body
     } = req;
@@ -177,7 +181,7 @@ routes.route("/collection").post(async (req, res) => {
     }
 
     let data = {
-      name: body.name?.toLowerCase()
+      name: (_body$name = body.name) === null || _body$name === void 0 ? void 0 : _body$name.toLowerCase()
     };
 
     if (!!body.avatar) {
@@ -372,7 +376,9 @@ routes.get("/collection-names", async (req, res) => {
 });
 routes.get("/my-collections", async (req, res) => {
   try {
-    const owner = req.query.owner?.toLowerCase();
+    var _req$query$owner;
+
+    const owner = (_req$query$owner = req.query.owner) === null || _req$query$owner === void 0 ? void 0 : _req$query$owner.toLowerCase();
     const token = req.query.token;
 
     if (owner && token) {
@@ -493,7 +499,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        if (obj.viewedAddresses?.includes(body.address)) {
+        var _obj$viewedAddresses;
+
+        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
           throw new Error("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -511,7 +519,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        if (obj.likedAccounts?.includes(body.address)) {
+        var _obj$likedAccounts;
+
+        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
           throw new Error("Already Liked");
         } //else if
         else {
@@ -543,6 +553,8 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
+      var _body$address, _body$address2;
+
       await _models.default.viewAndLikeModel.create({
         tokenAddr: {
           '$regex': '^' + body.tokenAddr + '$',
@@ -551,8 +563,8 @@ routes.route("/view-and-like").get(async (req, res) => {
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
       });
     }
   } catch (error) {
@@ -826,22 +838,132 @@ routes.post("/nft-collector", (req, res) => {
     }
   });
 });
-routes.post("/update-nft-collector", (req, res) => {
-  let updateNft = _models.default.nftControllerModel.updateMany({
-    tokenAddr: {
-      '$regex': '^' + req.body.tokenAddr + '$',
-      "$options": "i"
-    }
-  }, {
-    chainId: req.body.chain
-  });
+routes.post("/external-nft", (req, res) => {
+  try {
+    let query;
 
-  updateNft.exec(err => {
-    if (err) throw err;
-    res.status(200).json({
-      message: "Updated Success"
+    if (parseInt(req.body.chainId) == 56 || String(req.body.chainId) == "0x38") {
+      query = {
+        owner: req.body.owner,
+        chainId: {
+          decimal: 56,
+          hexa: "0x38"
+        },
+        $and: [{
+          tokenAddr: {
+            $ne: "0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0xA84ABA462A3dc12A5874c8D0D61d757256C905a5"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x69903cd9dBBEC1bcaB81E1ffe003260e9e487Ca4"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0xe9e7cea3dedca5984780bafc599bd69add087d56"
+          }
+        }]
+      };
+    } else if (parseInt(req.body.chainId) == 97 || String(req.body.chainId) == "0x61") {
+      query = {
+        owner: req.body.owner,
+        chainId: {
+          decimal: 97,
+          hexa: "0x61"
+        },
+        $and: [{
+          tokenAddr: {
+            $ne: "0x69536bdf4B18499181EB386B0E4019a28C4Fb096"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0xA4fb840986B10aC44aA893793cfe755c81c3740D"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x51c19275686d84c1553f3edd2945dba6ec0c7de4"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47"
+          }
+        }]
+      };
+    } else if (parseInt(req.body.chainId) == 4 || String(req.body.chainId) == "0x4") {
+      query = {
+        owner: req.body.owner,
+        chainId: {
+          decimal: 4,
+          hexa: "0x4"
+        },
+        $and: [{
+          tokenAddr: {
+            $ne: "0xDB753bacDFb788c4d70CEc237F898db21017B11d"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x848655Ccc2E571cA9470954BF08C4Eab3436830B"
+          }
+        }, {
+          tokenAddr: {
+            $ne: "0x8A36a5395CAa70da6545f030BFB659Fc8e820A59"
+          }
+        }]
+      };
+    } else if (parseInt(req.body.chainId) == 1 || String(req.body.chainId) == "0x1") {
+      query = {
+        owner: req.body.owner,
+        chainId: {
+          decimal: 1,
+          hexa: "0x1"
+        }
+      };
+    } else if (parseInt(req.body.chainId) == 137 || String(req.body.chainId) == "0x89") {
+      query = {
+        owner: req.body.owner,
+        chainId: {
+          decimal: 137,
+          hexa: "0x89"
+        }
+      };
+    } else if (parseInt(req.body.chainId) == 80001 || String(req.body.chainId) == "0x13881") {
+      query = {
+        owner: req.body.owner,
+        chainId: {
+          decimal: 80001,
+          hexa: "0x13881"
+        }
+      };
+    }
+
+    let externalNft = _models.default.nftControllerModel.find(query);
+
+    externalNft.exec((err, data) => {
+      if (err) throw err;
+      res.status(200).json(data);
     });
-  });
+  } catch (err) {
+    console.error(err);
+  }
 });
 routes.post("/insert-multiple-nft", async (req, res) => {
   try {
