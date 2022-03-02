@@ -43,23 +43,35 @@ routes.route("/profile").post(async (req, res) => {
       body
     } = req;
     let check = await _models.default.userModel.findOne({
-      address: body.address.toLowerCase()
+      address: {
+        '$regex': '^' + body.address + '$',
+        "$options": "i"
+      }
     }).exec();
+    console.log(check);
 
-    if (check == null || check == undefined) {
+    if (check !== null && check !== undefined) {
       res.status(200).json({
         message: "This wallet address is already exist"
       });
     } else {
-      await _models.default.userModel.create({ ...body,
-        address: body.address.toLowerCase()
-      });
+      await new _models.default.userModel({
+        address: body.address,
+        userName: body.userName,
+        description: body.description,
+        avatar: body.avatar,
+        background: body.background,
+        twitter: body.twitter,
+        facebook: body.facebook,
+        instagram: body.instagram,
+        isVerified: body.isVerified
+      }).save();
       res.status(200).json("Successfully registered");
     }
   } catch (error) {
-    console.log("[profile post] error => ", error);
     res.status(500).json({
-      message: "Server Error"
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 }).put(async (req, res) => {
@@ -68,14 +80,19 @@ routes.route("/profile").post(async (req, res) => {
       body
     } = req;
     const userFromDB = await _models.default.userModel.findOne({
-      address: body.address.toLowerCase()
+      address: {
+        '$regex': '^' + body.address + '$',
+        "$options": "i"
+      }
     });
 
     if (userFromDB) {
-      await _models.default.userModel.updateOne({
-        address: body.address.toLowerCase()
-      }, { ...body,
-        address: body.address.toLowerCase()
+      await _models.default.userModel.findOneAndUpdate({
+        address: {
+          '$regex': '^' + body.address + '$',
+          "$options": "i"
+        }
+      }, { ...body
       }, {
         runValidators: true
       });
@@ -86,41 +103,68 @@ routes.route("/profile").post(async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("[profile post] error => ", error);
     res.status(500).json({
-      message: "Server Error"
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 }).get(async (req, res) => {
-  const address = req.query.address;
-  const user = await _models.default.userModel.findOne({
-    address: address.toLowerCase()
-  }).lean().exec();
-  res.status(200).json({ ...user
-  });
+  try {
+    const address = req.query.address;
+    const user = await _models.default.userModel.findOne({
+      address: {
+        '$regex': '^' + address + '$',
+        "$options": "i"
+      }
+    }).lean().exec();
+    res.status(200).json({ ...user
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.post("/verified_user", (req, res) => {
-  let VerifiedCollection = _models.default.userModel.findOneAndUpdate({
-    address: req.body.address
-  }, {
-    isVerified: req.body.isverified
-  });
-
-  VerifiedCollection.exec(err => {
-    if (err) throw err;
-    res.status(200).json({
-      message: "Successfully Verified"
+  try {
+    let VerifiedCollection = _models.default.userModel.findOneAndUpdate({
+      address: {
+        '$regex': '^' + req.body.address + '$',
+        "$options": "i"
+      }
+    }, {
+      isVerified: req.body.isverified
     });
-  });
+
+    VerifiedCollection.exec(err => {
+      if (err) throw err;
+      res.status(200).json({
+        message: "Successfully Verified"
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.get("/get-all-users", (req, res) => {
-  let user = _models.default.userModel.find();
+  try {
+    let user = _models.default.userModel.find();
 
-  user.exec((err, data) => {
-    res.status(200).json({
-      data
+    user.exec((err, data) => {
+      res.status(200).json({
+        data
+      });
     });
-  });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.route("/collection").post(async (req, res) => {
   try {
@@ -160,28 +204,29 @@ routes.route("/collection").post(async (req, res) => {
       res.status(200).json("Successfully created!");
     }
   } catch (error) {
-    console.log("[collection post] error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 }).put(async (req, res) => {
   try {
-    var _body$name;
-
     const {
       body
     } = req;
     const existingOne = await _models.default.collectionModel.findOne({
       _id: body._id
-    });
+    }).exec();
 
     if (!existingOne) {
       throw new Error("No exist id");
     }
 
     let data = {
-      name: (_body$name = body.name) === null || _body$name === void 0 ? void 0 : _body$name.toLowerCase()
+      name: {
+        '$regex': '^' + body.name + '$',
+        "$options": "i"
+      }
     };
 
     if (!!body.avatar) {
@@ -219,9 +264,9 @@ routes.route("/collection").post(async (req, res) => {
     }, data);
     res.status(200).json("Successfully updated!");
   } catch (error) {
-    console.log("[collection put] error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 }).get(async (req, res) => {
@@ -233,9 +278,9 @@ routes.route("/collection").post(async (req, res) => {
     res.status(200).json({ ...collection
     });
   } catch (error) {
-    console.log("[collection get] error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 }).delete(async (req, res) => {
@@ -266,67 +311,88 @@ var uploadcoll = multer({
   storage: Storage
 }).single('pic');
 routes.post("/feature_collection", uploadcoll, (req, res) => {
-  if (req.file == undefined) {
-    res.status(400).json({
-      message: "Image is Required"
-    });
-  } else if (req.body.link == undefined) {
-    res.status(400).json({
-      message: "Link is Required"
-    });
-  } else {
-    fs.readFile(req.file.path, (err, data) => {
-      if (err) throw err;
-      const params = {
-        Bucket: 'closedsea',
-        // pass your bucket name
-        Key: req.file.filename,
-        // file will be saved as testBucket/contacts.csv
-        ACL: "public-read",
-        ContentType: req.file.mimetype,
-        Body: data
-      };
-      s3.upload(params, function (err, data) {
+  try {
+    if (req.file == undefined) {
+      res.status(400).json({
+        message: "Image is Required"
+      });
+    } else if (req.body.link == undefined) {
+      res.status(400).json({
+        message: "Link is Required"
+      });
+    } else {
+      fs.readFile(req.file.path, (err, data) => {
         if (err) throw err;
-
-        let filterFeatureCollection = _models.default.uploadfeaturemodel.findOneAndUpdate({
-          collection_name: req.body.collection
-        }, {
-          link: req.body.link,
-          imageUrl: data.Location
-        });
-
-        filterFeatureCollection.exec(err => {
+        const params = {
+          Bucket: 'closedsea',
+          // pass your bucket name
+          Key: req.file.filename,
+          // file will be saved as testBucket/contacts.csv
+          ACL: "public-read",
+          ContentType: req.file.mimetype,
+          Body: data
+        };
+        s3.upload(params, function (err, data) {
           if (err) throw err;
-          res.status(200).json({
-            message: "Success"
+
+          let filterFeatureCollection = _models.default.uploadfeaturemodel.findOneAndUpdate({
+            collection_name: req.body.collection
+          }, {
+            link: req.body.link,
+            imageUrl: data.Location
+          });
+
+          filterFeatureCollection.exec(err => {
+            if (err) throw err;
+            res.status(200).json({
+              message: "Success"
+            });
           });
         });
       });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 });
 routes.get("/feature_collection", async (req, res) => {
-  _models.default.uploadfeaturemodel.find((err, data) => {
-    if (err) throw err;
-    res.status(200).json({
-      data
+  try {
+    _models.default.uploadfeaturemodel.find((err, data) => {
+      if (err) throw err;
+      res.status(200).json({
+        data
+      });
     });
-  });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.post("/verified_collection", (req, res) => {
-  let VerifiedCollection = _models.default.collectionModel.findOneAndUpdate({
-    name: req.body.collection_name
-  }, {
-    isVerified: req.body.isverified
-  });
-
-  VerifiedCollection.exec(err => {
-    if (err) throw err;
-    res.status(200).json({
-      message: "Successfully Verified"
+  try {
+    let VerifiedCollection = _models.default.collectionModel.findOneAndUpdate({
+      name: req.body.collection_name
+    }, {
+      isVerified: req.body.isverified
     });
-  });
+
+    VerifiedCollection.exec(err => {
+      if (err) throw err;
+      res.status(200).json({
+        message: "Successfully Verified"
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 const profilefilePath = path.join(__dirname, "../", "../public/commonimage/"); // for file upload
 
@@ -340,26 +406,33 @@ var uploadImage = multer({
   storage: Storage
 }).single('file');
 routes.post("/upload_file_to_s3", uploadImage, (req, res) => {
-  if (req.file == undefined) {
-    res.status("400").json({
-      message: "Image is Required"
-    });
-  } else {
-    fs.readFile(req.file.path, (err, data) => {
-      if (err) throw err;
-      const params = {
-        Bucket: 'closedsea',
-        // pass your bucket name
-        Key: req.body.fname,
-        // file will be saved
-        ACL: "public-read",
-        ContentType: req.file.mimetype,
-        Body: data
-      };
-      s3.upload(params, function (s3Err, data) {
-        if (s3Err) throw s3Err;
-        res.status(200).json(data);
+  try {
+    if (req.file == undefined) {
+      res.status("400").json({
+        message: "Image is Required"
       });
+    } else {
+      fs.readFile(req.file.path, (err, data) => {
+        if (err) throw err;
+        const params = {
+          Bucket: 'closedsea',
+          // pass your bucket name
+          Key: req.body.fname,
+          // file will be saved
+          ACL: "public-read",
+          ContentType: req.file.mimetype,
+          Body: data
+        };
+        s3.upload(params, function (s3Err, data) {
+          if (s3Err) throw s3Err;
+          res.status(200).json(data);
+        });
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 });
@@ -368,9 +441,9 @@ routes.get("/collection-names", async (req, res) => {
     const collections = await _models.default.collectionModel.find({}).select("name -_id").exec();
     res.status(200).json(collections);
   } catch (error) {
-    console.log("[collection names] get error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 });
@@ -401,9 +474,9 @@ routes.get("/my-collections", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("[collection names] get error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 });
@@ -437,9 +510,9 @@ routes.put("/insert-token-to-collection", async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("[collection names] get error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 });
@@ -471,9 +544,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("[view and like] get error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 }).post(async (req, res) => {
@@ -568,9 +641,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("[view and like] post error => ", error);
     res.status(500).json({
-      message: error.toString()
+      message: "Some thing went wrong",
+      error: error.message
     });
   }
 });
@@ -580,7 +653,7 @@ routes.get("/views_and_likes", (req, res) => {
   viewAndLike.exec().then(data => {
     res.send(data);
   }).catch(err => res.status(500).json({
-    message: error.toString()
+    message: error.message
   }));
 });
 routes.post("/usersviews_and_userslikes", (req, res) => {
@@ -778,7 +851,7 @@ routes.post("/admin-login", (req, res) => {
 });
 routes.post("/single-nft", (req, res) => {
   if (req.body.tokenId == undefined || req.body.tokenAddr == undefined) {
-    res.status(500).json("parameters are wrong");
+    res.status(500).json("Payload are wrong");
   } else {
     var nftdata = _models.default.nftControllerModel.findOne({
       tokenId: req.body.tokenId,
@@ -798,7 +871,7 @@ routes.post("/single-nft", (req, res) => {
 });
 routes.post("/nfts-wrt-tokenaddr", (req, res) => {
   if (req.body.tokenIds == undefined || req.body.tokenAddr == undefined) {
-    res.status(500).json("parameters are wrong");
+    res.status(500).json("Payload are wrong");
   } else {
     let tokenId = req.body.tokenIds.toString();
     let tokenIds = tokenId.replace(/,/g, "|");
