@@ -776,6 +776,47 @@ routes.post("/admin-login", (req, res) => {
     message: error.toString()
   }));
 });
+routes.post("/single-nft", (req, res) => {
+  if (req.body.tokenId == undefined || req.body.tokenAddr == undefined) {
+    res.status(500).json("parameters are wrong");
+  } else {
+    var nftdata = _models.default.nftControllerModel.findOne({
+      tokenId: req.body.tokenId,
+      tokenAddr: {
+        '$regex': '^' + req.body.tokenAddr + '$',
+        "$options": "i"
+      }
+    });
+
+    ;
+    nftdata.exec().then(data => {
+      res.status(200).json(data);
+    }).catch(err => res.status(500).json({
+      message: error.toString()
+    }));
+  }
+});
+routes.post("/nfts-wrt-tokenaddr", (req, res) => {
+  if (req.body.tokenIds == undefined || req.body.tokenAddr == undefined) {
+    res.status(500).json("parameters are wrong");
+  } else {
+    let tokenId = req.body.tokenIds.toString();
+    let tokenIds = tokenId.replace(/,/g, "|");
+
+    var nftdata = _models.default.nftControllerModel.find({
+      tokenAddr: req.body.tokenAddr,
+      tokenId: {
+        "$regex": tokenIds
+      }
+    });
+
+    nftdata.exec().then(data => {
+      res.status(200).json(data);
+    }).catch(err => res.status(500).json({
+      message: error.toString()
+    }));
+  }
+});
 routes.get("/nft-collector", (req, res) => {
   var nftdata = _models.default.nftControllerModel.find();
 
@@ -784,6 +825,59 @@ routes.get("/nft-collector", (req, res) => {
   }).catch(err => res.status(500).json({
     message: error.toString()
   }));
+});
+routes.post("/nft-collector", (req, res) => {
+  let filterData = _models.default.nftControllerModel.findOne({
+    tokenId: req.body.tokenId,
+    tokenAddr: {
+      '$regex': '^' + req.body.tokenAddr + '$',
+      "$options": "i"
+    }
+  });
+
+  filterData.exec((err, data) => {
+    if (err) throw err;
+
+    if (data !== null) {
+      let updateNft = _models.default.nftControllerModel.findOneAndUpdate({
+        tokenId: req.body.tokenId,
+        tokenAddr: {
+          '$regex': '^' + req.body.tokenAddr + '$',
+          "$options": "i"
+        }
+      }, {
+        price: req.body.price,
+        owner: req.body.ownerOf,
+        selectedCat: req.body.selectedCat,
+        isOnSell: req.body.isOnSell
+      });
+
+      updateNft.exec(err => {
+        if (err) throw err;
+        res.status(200).json({
+          message: "Updated Success"
+        });
+      });
+    } else {
+      let createNft = new _models.default.nftControllerModel({
+        tokenAddr: req.body.tokenAddr,
+        tokenId: req.body.tokenId,
+        price: req.body.price,
+        owner: req.body.ownerOf,
+        metadata: req.body.metadata,
+        selectedCat: req.body.selectedCat,
+        tokenUri: req.body.tokenUri,
+        chainId: req.body.chainId,
+        relatedCollectionId: req.body.relatedCollectionId,
+        status: "pending"
+      });
+      createNft.save(function () {
+        res.status(200).json({
+          message: "Success"
+        });
+      });
+    }
+  });
 });
 routes.post("/nft-collector", (req, res) => {
   let filterData = _models.default.nftControllerModel.findOne({
@@ -1150,7 +1244,6 @@ routes.post("/most-liked-nft", async (req, res) => {
   });
 });
 routes.post("/least-liked-nft", async (req, res) => {
-  // let leastLikeNft=[]
   let filterData = await _models.default.nftControllerModel.aggregate([{
     $match: {
       isOnSell: true,
