@@ -29,32 +29,37 @@ routes
   .post(async (req, res) => {
     try {
       const { body } = req;
-      let check = await models.userModel.findOne({address: body.address.toLowerCase()}).exec();
-      if(check == null || check == undefined){
+      let check = await models.userModel.findOne({address: {'$regex' : '^'+body.address+'$', "$options": "i"}}).exec();
+      console.log(check)
+      if(check !== null && check !== undefined){
         res.status(200).json({ message: "This wallet address is already exist" });
       }
       else{
-        await models.userModel.create({
-          ...body,
-          address: body.address.toLowerCase(),
-        });
+        await new models.userModel({
+          address: body.address,
+          userName: body.userName,
+          description: body.description,
+          avatar: body.avatar,
+          background: body.background,
+          twitter: body.twitter,
+          facebook:body.facebook,
+          instagram: body.instagram,
+          isVerified:body.isVerified
+        }).save();
         res.status(200).json("Successfully registered");
       }
     } catch (error) {
-      console.log("[profile post] error => ", error);
-      res.status(500).json({ message: "Server Error" });
+      res.status(500).json({ message: "Some thing went wrong",error:error.message });
     }
   })
   .put(async (req, res) => {
     try {
       const { body } = req;
       const userFromDB = await models.userModel.findOne({
-        address: body.address.toLowerCase(),
+        address:{'$regex' : '^'+body.address+'$', "$options": "i"},
       });
       if (userFromDB) {
-        await models.userModel.updateOne(
-          { address: body.address.toLowerCase() },
-          { ...body, address: body.address.toLowerCase() },
+        await models.userModel.findOneAndUpdate({address:{'$regex' : '^'+body.address+'$', "$options": "i"}},{ ...body},
           { runValidators: true }
         );
         res.status(200).json("Successfully updated");
@@ -62,34 +67,42 @@ routes
         res.status(500).json({ message: "User not registered yet." });
       }
     } catch (error) {
-      console.log("[profile post] error => ", error);
-      res.status(500).json({ message: "Server Error" });
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
   })
   .get(async (req, res) => {
-    const address = req.query.address;
-    const user = await models.userModel
-      .findOne({ address: address.toLowerCase() })
-      .lean()
-      .exec();
-    res.status(200).json({ ...user });
+    try{
+      const address = req.query.address;
+      const user = await models.userModel.findOne({address:{'$regex' : '^'+address+'$', "$options": "i"}}).lean().exec();
+      res.status(200).json({ ...user });
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
   });
 
   routes.post("/verified_user",(req,res)=>{
-    let VerifiedCollection= models.userModel.findOneAndUpdate({address:req.body.address},{
-      isVerified: req.body.isverified
-    })
-    VerifiedCollection.exec((err)=>{
-      if(err) throw err;
-      res.status(200).json({message:"Successfully Verified"})
-    })
+    try{  
+    let VerifiedCollection= models.userModel.findOneAndUpdate({address:{'$regex' : '^'+req.body.address+'$', "$options": "i"}},{
+        isVerified: req.body.isverified
+      })
+      VerifiedCollection.exec((err)=>{
+        if(err) throw err;
+        res.status(200).json({message:"Successfully Verified"})
+      })
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
   })
 
 routes.get("/get-all-users", (req, res) => {
+  try{
     let user = models.userModel.find();
     user.exec((err,data)=>{
       res.status(200).json({data});
     })
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
 });
 
 routes
@@ -124,21 +137,18 @@ routes
         res.status(200).json("Successfully created!");
       }
     } catch (error) {
-      console.log("[collection post] error => ", error);
-      res.status(500).json({ message: error.toString() });
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
   })
   .put(async (req, res) => {
     try {
       const { body } = req;
-      const existingOne = await models.collectionModel.findOne({
-        _id: body._id,
-      });
+      const existingOne = await models.collectionModel.findOne({_id: body._id,}).exec();
       if (!existingOne) {
         throw new Error("No exist id");
       }
       let data = {
-        name: body.name?.toLowerCase(),
+        name: {'$regex' : '^'+body.name+'$', "$options": "i"},
       };
       if (!!body.avatar) {
         data = { ...data, avatar: body.avatar };
@@ -158,8 +168,7 @@ routes
       await models.collectionModel.updateOne({ _id: body._id }, data);
       res.status(200).json("Successfully updated!");
     } catch (error) {
-      console.log("[collection put] error => ", error);
-      res.status(500).json({ message: error.toString() });
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
   })
   .get(async (req, res) => {
@@ -171,8 +180,7 @@ routes
         .exec();
       res.status(200).json({ ...collection });
     } catch (error) {
-      console.log("[collection get] error => ", error);
-      res.status(500).json({ message: error.toString() });
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
   })
   .delete(async (req, res) => {
@@ -189,7 +197,6 @@ routes
   });
 
   const featureCollectionPath = path.join(__dirname,"../","../public/featureCollectionImage/");
-
   // for file upload
   var Storage=multer.diskStorage({
     destination:featureCollectionPath,
@@ -203,55 +210,67 @@ routes
   }).single('pic');
    
   routes.post("/feature_collection",uploadcoll,(req,res)=>{
-    if(req.file == undefined){
-      res.status(400).json({message:"Image is Required"})
+    try {
+      if(req.file == undefined){
+        res.status(400).json({message:"Image is Required"})
+      }
+      else if(req.body.link == undefined){
+        res.status(400).json({message:"Link is Required"})
+      }
+      else{
+      fs.readFile(req.file.path, (err, data) => {
+        if (err) throw err;
+        const params = {
+            Bucket: 'closedsea', // pass your bucket name
+            Key: req.file.filename, // file will be saved as testBucket/contacts.csv
+            ACL: "public-read",
+            ContentType: req.file.mimetype,
+            Body: data
+        };
+        s3.upload(params, function(err, data) {
+            if (err) throw err
+            let filterFeatureCollection= models.uploadfeaturemodel.findOneAndUpdate({collection_name:req.body.collection},{
+              link: req.body.link,
+              imageUrl:data.Location
+            })
+            filterFeatureCollection.exec((err)=>{
+              if(err) throw err;
+              res.status(200).json({message:"Success"})
+            })
+        });
+    });
     }
-    else if(req.body.link == undefined){
-      res.status(400).json({message:"Link is Required"})
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
-    else{
-    fs.readFile(req.file.path, (err, data) => {
-      if (err) throw err;
-      const params = {
-          Bucket: 'closedsea', // pass your bucket name
-          Key: req.file.filename, // file will be saved as testBucket/contacts.csv
-          ACL: "public-read",
-          ContentType: req.file.mimetype,
-          Body: data
-      };
-      s3.upload(params, function(err, data) {
-          if (err) throw err
-          let filterFeatureCollection= models.uploadfeaturemodel.findOneAndUpdate({collection_name:req.body.collection},{
-            link: req.body.link,
-            imageUrl:data.Location
-          })
-          filterFeatureCollection.exec((err)=>{
-            if(err) throw err;
-            res.status(200).json({message:"Success"})
-          })
-      });
-   });
-  }
-  });
+});
 
   routes.get("/feature_collection", async (req, res) => {
-    models.uploadfeaturemodel.find((err,data)=>{
-      if(err) throw err;
-      res.status(200).json({data})
-    })
+    try{
+      models.uploadfeaturemodel.find((err,data)=>{
+        if(err) throw err;
+        res.status(200).json({data})
+      })
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
   })
 
   routes.post("/verified_collection",(req,res)=>{
-    let VerifiedCollection= models.collectionModel.findOneAndUpdate({name:req.body.collection_name},{
-      isVerified: req.body.isverified
-    })
-    VerifiedCollection.exec((err)=>{
-      if(err) throw err;
-      res.status(200).json({message:"Successfully Verified"})
-    })
+   try{
+      let VerifiedCollection= models.collectionModel.findOneAndUpdate({name:req.body.collection_name},{
+        isVerified: req.body.isverified
+      })
+      VerifiedCollection.exec((err)=>{
+        if(err) throw err;
+        res.status(200).json({message:"Successfully Verified"})
+      })
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
   })
-const profilefilePath = path.join(__dirname,"../","../public/commonimage/");
 
+const profilefilePath = path.join(__dirname,"../","../public/commonimage/");
 // for file upload
 var Storage=multer.diskStorage({
   destination:profilefilePath,
@@ -265,25 +284,29 @@ var uploadImage=multer({
 }).single('file');
  
 routes.post("/upload_file_to_s3",uploadImage,(req,res)=>{
-  if(req.file == undefined){
-    res.status("400").json({message:"Image is Required"})
-  }
-  else{
-      fs.readFile(req.file.path, (err, data) => {
-        if (err) throw err;
-        const params = {
-            Bucket: 'closedsea', // pass your bucket name
-            Key: req.body.fname, // file will be saved
-            ACL: "public-read",
-            ContentType: req.file.mimetype,
-            Body: data
-        };
-        s3.upload(params, function(s3Err, data) {
-            if (s3Err) throw s3Err
-            res.status(200).json(data);
-        });
-      });
+ try{
+    if(req.file == undefined){
+      res.status("400").json({message:"Image is Required"})
     }
+    else{
+        fs.readFile(req.file.path, (err, data) => {
+          if (err) throw err;
+          const params = {
+              Bucket: 'closedsea', // pass your bucket name
+              Key: req.body.fname, // file will be saved
+              ACL: "public-read",
+              ContentType: req.file.mimetype,
+              Body: data
+          };
+          s3.upload(params, function(s3Err, data) {
+              if (s3Err) throw s3Err
+              res.status(200).json(data);
+          });
+        });
+      }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
 })
 
 routes.get("/collection-names", async (req, res) => {
@@ -294,8 +317,7 @@ routes.get("/collection-names", async (req, res) => {
       .exec();
     res.status(200).json(collections);
   } catch (error) {
-    console.log("[collection names] get error => ", error);
-    res.status(500).json({ message: error.toString() });
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
   }
 });
 
@@ -315,8 +337,7 @@ routes.get("/my-collections", async (req, res) => {
       res.status(400).json({message:"Required value not found"});
     }
   } catch (error) {
-    console.log("[collection names] get error => ", error);
-    res.status(500).json({ message: error.toString() });
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
   }
 });
 
@@ -340,8 +361,7 @@ routes.put("/insert-token-to-collection", async (req, res) => {
       res.status(200).json({message:"Document not found!"})
     }
   } catch (error) {
-    console.log("[collection names] get error => ", error);
-    res.status(500).json({ message: error.toString() });
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
   }
 });
 
@@ -365,8 +385,7 @@ routes
         });
       }
     } catch (error) {
-      console.log("[view and like] get error => ", error);
-      res.status(500).json({ message: error.toString() });
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
   })
   .post(async (req, res) => {
@@ -437,8 +456,7 @@ routes
         });
       }
     } catch (error) {
-      console.log("[view and like] post error => ", error);
-      res.status(500).json({ message: error.toString() });
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
   });
 
@@ -448,7 +466,7 @@ routes.get("/views_and_likes",(req, res) => {
     .then((data)=>{
       res.send(data);
     })
-    .catch((err)=>res.status(500).json({ message: error.toString()}))
+    .catch((err)=>res.status(500).json({ message: error.message}))
 })
 
 routes.post("/usersviews_and_userslikes",(req, res) => {
@@ -597,8 +615,6 @@ routes.post("/single-nft",(req, res) => {
     .catch((err)=>res.status(500).json({ message: error.toString()}))
   }
 })
-
-
 
 routes.post("/nfts-wrt-tokenaddr",(req, res) => {
   if(req.body.tokenIds == undefined || req.body.tokenAddr==undefined){
@@ -1115,7 +1131,6 @@ routes.post("/nft-category-vise",(req, res) => {
 
 
 const filePath = path.join(__dirname,"../","../public/sliderimage/");
-
 // for file upload
 var Storage=multer.diskStorage({
   destination:filePath,
