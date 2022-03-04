@@ -22,6 +22,7 @@ const fs = require('fs');
 
 const AWS = require('aws-sdk');
 
+const secret = "1b4b2481e997ff0b8be28106f97040aa d4cb154b4a0b7e135354946c2b572110 b5d60d263e8e9596acd942a9402b23e0 e2705442w261f902b08fa9d220e3c906037 b8184ea414e848d2323838b30367703be82e c4e417215bb9dsddd4d231a8df5799d7f84 eb3e951fd15ae401513b56c684514ea3";
 routes.use(cookieParser()); // Body Parsers
 
 routes.use(bodyParser.urlencoded({
@@ -32,6 +33,48 @@ const s3 = new AWS.S3({
   accessKeyId: "AKIASAFVMRRSMD5RISOV",
   secretAccessKey: "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"
 });
+
+async function auth(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header("Access-Control-Allow-Headers", "Authorization");
+  var authHeader = req.header('authorization');
+  let token, decode;
+
+  if (!authHeader) {
+    res.status(500).json({
+      message: "Token is not defined"
+    });
+  } else if (authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7, authHeader.length);
+    decode = jwt.verify(token, secret);
+  } else {
+    decode = jwt.verify(token, secret);
+    ;
+  }
+
+  console.log(decode);
+
+  if (decode.walletAddress) {
+    var decryptedData = await _models.default.userModel.findOne({
+      address: decode.walletAddress
+    }).exec();
+
+    if (decryptedData) {
+      next();
+    } else {
+      res.status(400).json({
+        message: "You are not authorized person"
+      });
+    }
+  } else {
+    res.status(400).json({
+      message: "Your token is not valid/expired"
+    });
+  }
+}
+
+;
 routes.get("/", (req, res) => {
   res.status(200).json({
     message: "Connected!"
@@ -189,12 +232,10 @@ routes.route("/collection").post(async (req, res) => {
         res.send("Successfully token Added!");
       });
     } else {
-      var _body$owner, _body$nftAddress;
-
       await _models.default.collectionModel.create({
         name: body.name,
-        owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
-        nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
+        owner: body.owner?.toLowerCase(),
+        nftAddress: body.nftAddress?.toLowerCase(),
         avatar: body.avatar,
         background: body.background,
         description: body.description,
@@ -449,9 +490,7 @@ routes.get("/collection-names", async (req, res) => {
 });
 routes.get("/my-collections", async (req, res) => {
   try {
-    var _req$query$owner;
-
-    const owner = (_req$query$owner = req.query.owner) === null || _req$query$owner === void 0 ? void 0 : _req$query$owner.toLowerCase();
+    const owner = req.query.owner?.toLowerCase();
     const token = req.query.token;
 
     if (owner && token) {
@@ -572,9 +611,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        var _obj$viewedAddresses;
-
-        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
+        if (obj.viewedAddresses?.includes(body.address)) {
           throw new Error("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -592,9 +629,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        var _obj$likedAccounts;
-
-        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
+        if (obj.likedAccounts?.includes(body.address)) {
           throw new Error("Already Liked");
         } //else if
         else {
@@ -626,8 +661,6 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
-      var _body$address, _body$address2;
-
       await _models.default.viewAndLikeModel.create({
         tokenAddr: {
           '$regex': '^' + body.tokenAddr + '$',
@@ -636,8 +669,8 @@ routes.route("/view-and-like").get(async (req, res) => {
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
       });
     }
   } catch (error) {
@@ -647,7 +680,7 @@ routes.route("/view-and-like").get(async (req, res) => {
     });
   }
 });
-routes.get("/views_and_likes", (req, res) => {
+routes.get("/views_and_likes", auth, (req, res) => {
   var viewAndLike = _models.default.viewAndLikeModel.find();
 
   viewAndLike.exec().then(data => {
@@ -828,26 +861,26 @@ routes.post("/admin-register", (req, res) => {
     res.status.send("address are empty");
   }
 });
-routes.post("/admin-login", (req, res) => {
-  let adminData = _models.default.adminRegisterModel.findOne({
-    walletAddress: req.body.account
-  });
+routes.post("/admin-login", async (req, res) => {
+  if (req.body.address) {
+    let adminData = await _models.default.userModel.findOne({
+      walletAddress: req.body.address
+    }).exec();
 
-  adminData.exec().then(data => {
-    if (data) {
+    if (adminData) {
+      const jwtData = {
+        expiresIn: "2 hours"
+      };
       const token = jwt.sign({
-        walletAddress: req.body.account
-      }, "walletaddress12345678123456781234");
-      res.cookie('closedSeaAdmin', token, {
-        expires: new Date(Date.now() + 6000000)
-      });
-      res.status(200).send("Sucessfull Login");
+        walletAddress: req.body.address
+      }, secret, jwtData);
+      res.status(200).json(token);
     } else {
       res.status(400).send("Wallet Not Found");
     }
-  }).catch(err => res.status(500).json({
-    message: error.toString()
-  }));
+  } else {
+    res.status(400).send("Wallet Not Found");
+  }
 });
 routes.post("/single-nft", (req, res) => {
   if (req.body.tokenId == undefined || req.body.tokenAddr == undefined) {
