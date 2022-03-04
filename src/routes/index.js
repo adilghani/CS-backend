@@ -8,7 +8,7 @@ const bodyParser=require("body-parser");
 var uuid = require('uuid');
 const fs = require('fs');
 const AWS = require('aws-sdk')
-
+const secret="1b4b2481e997ff0b8be28106f97040aa d4cb154b4a0b7e135354946c2b572110 b5d60d263e8e9596acd942a9402b23e0 e2705442w261f902b08fa9d220e3c906037 b8184ea414e848d2323838b30367703be82e c4e417215bb9dsddd4d231a8df5799d7f84 eb3e951fd15ae401513b56c684514ea3";
 routes.use(cookieParser())
 
 // Body Parsers
@@ -19,6 +19,38 @@ const s3 = new AWS.S3({
   accessKeyId: "AKIASAFVMRRSMD5RISOV",
   secretAccessKey: "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"
 });
+
+async function auth(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');  
+  res.header("Access-Control-Allow-Headers", "Authorization");
+  
+  var authHeader = req.header('authorization');
+  let token,decode;
+  if (!authHeader){
+    res.status(500).json({message:"Token is not defined"})
+  } 
+  else if (authHeader.startsWith("Bearer ")){
+    token = authHeader.substring(7, authHeader.length);
+    decode =jwt.verify(token, secret);
+  } 
+  else {
+    decode =jwt.verify(token, secret);;
+  }
+
+  if(decode.walletAddress){
+    var decryptedData = await models.userModel.findOne({address:decode.walletAddress}).exec();
+    if(decryptedData){
+      next()
+    }
+    else{
+      res.status(400).json({message:"You are not authorized person"})
+    }
+  }
+  else{
+    res.status(400).json({message:"Your token is not valid/expired"})
+  }
+};
 
 routes.get("/", (req, res) => {
   res.status(200).json({ message: "Connected!" });
@@ -586,20 +618,23 @@ routes.post("/admin-register",(req, res) => {
   }
 })
 
-routes.post("/admin-login",(req, res) => {
-  let adminData=models.adminRegisterModel.findOne({walletAddress:req.body.account});
-  adminData.exec()
-  .then((data)=>{
-    if(data){
-      const token=jwt.sign({walletAddress:req.body.account},"walletaddress12345678123456781234")
-      res.cookie('closedSeaAdmin',token,{expires:new Date(Date.now()+6000000)})
-      res.status(200).send("Sucessfull Login")
+routes.post("/admin-login",async(req, res) => {
+  if(req.body.address){
+    let adminData=await models.userModel.findOne({walletAddress:req.body.address}).exec();
+    if(adminData){
+      const jwtData = {
+        expiresIn:"2 hours" 
+    };
+      const token=jwt.sign({walletAddress:req.body.address},secret,jwtData)
+      res.status(200).json(token)
     }
     else{
       res.status(400).send("Wallet Not Found")
     }
-  })
-  .catch((err)=>res.status(500).json({ message: error.toString()}))
+  }
+  else{
+    res.status(400).send("Wallet Not Found")
+  }
 })
 
 routes.post("/single-nft",(req, res) => {
