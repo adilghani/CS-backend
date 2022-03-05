@@ -24,30 +24,38 @@ async function auth(req, res, next) {
   var authHeader = req.header('authorization');
   let token,decode;
   if (!authHeader){
-    console.log("Token is not defined")
     res.status(500).json({message:"Token is not defined"})
   } 
   else if (authHeader.startsWith("Bearer ")){
     token = authHeader.substring(7, authHeader.length);
     decode =jwt.verify(token, secret);
-  } 
-  else {
-    decode =jwt.verify(token, secret);;
-  }
-
-  if(decode?.walletAddress){
-    var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
-    if(decryptedData){
-      next()
+    if(decode?.walletAddress){
+      var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
+      if(decryptedData){
+        next()
+      }
+      else{
+        res.status(400).json({message:"You are not authorized person"})
+      }
     }
     else{
-      console.log("Not decryptedData")
-      res.status(400).json({message:"You are not authorized person"})
+      res.status(400).json({message:"Your token is not valid/expired"})
     }
-  }
-  else{
-    console.log("Your token is not valid/expired")
-    res.status(400).json({message:"Your token is not valid/expired"})
+  } 
+  else {
+    decode =jwt.verify(token, secret);
+    if(decode?.walletAddress){
+      var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
+      if(decryptedData){
+        next()
+      }
+      else{
+        res.status(400).json({message:"You are not authorized person"})
+      }
+    }
+    else{
+      res.status(400).json({message:"Your token is not valid/expired"})
+    }
   }
 };
 
