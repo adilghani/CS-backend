@@ -39,7 +39,7 @@ async function auth(req, res, next) {
   }
 
   if(decode.walletAddress){
-    var decryptedData = await models.userModel.findOne({address:decode.walletAddress}).exec();
+    var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
     if(decryptedData){
       next()
     }
@@ -126,7 +126,7 @@ routes
     }
   })
 
-routes.get("/get-all-users", (req, res) => {
+routes.get("/get-all-users",auth, (req, res) => {
   try{
     let user = models.userModel.find();
     user.exec((err,data)=>{
@@ -241,7 +241,7 @@ routes
     storage:Storage
   }).single('pic');
    
-  routes.post("/feature_collection",uploadcoll,(req,res)=>{
+  routes.post("/feature_collection",auth,uploadcoll,(req,res)=>{
     try {
       if(req.file == undefined){
         res.status(400).json({message:"Image is Required"})
@@ -277,7 +277,7 @@ routes
     }
 });
 
-  routes.get("/feature_collection", async (req, res) => {
+  routes.get("/feature_collection",auth, async (req, res) => {
     try{
       models.uploadfeaturemodel.find((err,data)=>{
         if(err) throw err;
@@ -620,7 +620,7 @@ routes.post("/admin-register",(req, res) => {
 
 routes.post("/admin-login",async(req, res) => {
   if(req.body.address){
-    let adminData=await models.userModel.findOne({walletAddress:req.body.address}).exec();
+    let adminData=await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+req.body.address+'$', "$options": "i"}}).exec();
     if(adminData){
       const jwtData = {
         expiresIn:"2 hours" 
@@ -667,7 +667,7 @@ routes.post("/nfts-wrt-tokenaddr",(req, res) => {
   }
 })
 
-routes.get("/nft-collector",(req, res) => {
+routes.get("/nft-collector",auth,(req, res) => {
   var nftdata=models.nftControllerModel.find();
   nftdata.exec()
   .then((data)=>{
@@ -882,7 +882,7 @@ routes.post("/search-nft",(req, res) => {
   }
 })
 
-routes.post("/update-nft-status",(req, res) => {
+routes.post("/update-nft-status",auth,(req, res) => {
   let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
   filterData.exec((err,data)=>{
     if (err) throw err;
@@ -1020,7 +1020,7 @@ routes.get("/newest-nft",(req, res) => {
   })
 })
 
-routes.get("/count-nft",(req, res) => {
+routes.get("/count-nft",auth,(req, res) => {
   models.nftControllerModel.countDocuments({}, function(err, count) {
     res.status(202).json(count)
   })
@@ -1039,7 +1039,7 @@ routes.post("/nft-pagination",(req, res) => {
   })
 })
 
-routes.get("/feature-nft",(req, res) => {
+routes.get("/feature-nft",auth,(req, res) => {
   var nftdata=models.nftControllerModel.find({featured: true});
   nftdata.exec()
   .then((data)=>{
@@ -1053,7 +1053,7 @@ routes.get("/feature-nft",(req, res) => {
   .catch((err)=>res.status(500).json({ message: error.toString()}))
 })
 
-routes.post("/feature-nft",(req, res) => {
+routes.post("/feature-nft",auth,(req, res) => {
   models.nftControllerModel.countDocuments({featured: true}, function(err, documents) {
     if(documents==10 && req.body.isFeatured==true){
       res.status(202).json({message:"Feature nft limit exceed"})
@@ -1102,7 +1102,6 @@ routes.post("/count-nft-category-vise",(req, res) => {
     })
   }
 })
-
 
 routes.post("/nft-category-vise",(req, res) => {
   if(req.body.isMarketPlace){
@@ -1163,8 +1162,6 @@ routes.post("/nft-category-vise",(req, res) => {
   }
 })
 
-
-
 const filePath = path.join(__dirname,"../","../public/sliderimage/");
 // for file upload
 var Storage=multer.diskStorage({
@@ -1179,7 +1176,7 @@ var upload=multer({
 }).single('pic');
  
 
-routes.post("/add_slider",upload,(req,res)=>{
+routes.post("/add_slider",auth,upload,(req,res)=>{
   if(req.file == undefined){
     res.status("400").json({message:"Image is Required"})
   }
@@ -1218,7 +1215,7 @@ routes.post("/add_slider",upload,(req,res)=>{
 }
 });
 
-routes.post("/update_slider",upload,(req,res)=>{
+routes.post("/update_slider",auth,upload,(req,res)=>{
   if(req.file == undefined){
     res.status(400).json({message:"Image is Required"})
   }
@@ -1251,7 +1248,7 @@ routes.post("/update_slider",upload,(req,res)=>{
 }
 });
 
-routes.delete("/delete_slider/:id",upload,(req,res)=>{
+routes.delete("/delete_slider/:id",auth,upload,(req,res)=>{
   let url=req.query.q.split(".com/")[1] ;
   var deleteSlider= models.uploadSliderModel.findOneAndDelete({_id:req.params.id});
   s3.deleteObject({
@@ -1265,7 +1262,7 @@ routes.delete("/delete_slider/:id",upload,(req,res)=>{
   })
 });
 
-routes.get("/getsliders",(req,res)=>{
+routes.get("/getsliders",auth,(req,res)=>{
   let filterData=models.uploadSliderModel.find();
   filterData.exec(function(err,data){
     if(err) throw err;
