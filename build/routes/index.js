@@ -35,6 +35,8 @@ const s3 = new AWS.S3({
 });
 
 async function auth(req, res, next) {
+  var _decode;
+
   res.header("Access-Control-Allow-Origin", "*");
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header("Access-Control-Allow-Headers", "Authorization");
@@ -53,7 +55,9 @@ async function auth(req, res, next) {
     ;
   }
 
-  if (decode.walletAddress) {
+  console.log(decode);
+
+  if ((_decode = decode) !== null && _decode !== void 0 && _decode.walletAddress) {
     var decryptedData = await _models.default.adminRegisterModel.findOne({
       walletAddress: {
         '$regex': '^' + decode.walletAddress + '$',
