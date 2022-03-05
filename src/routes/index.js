@@ -37,8 +37,8 @@ async function auth(req, res, next) {
   else {
     decode =jwt.verify(token, secret);;
   }
-
-  if(decode.walletAddress){
+  console.log(decode)
+  if(decode?.walletAddress){
     var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
     if(decryptedData){
       next()
