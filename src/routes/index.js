@@ -33,7 +33,7 @@ async function auth(req, res, next) {
   else {
     decode =jwt.verify(token, secret);;
   }
-  console.log(decode)
+
   if(decode?.walletAddress){
     var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
     if(decryptedData){
@@ -619,7 +619,7 @@ routes.post("/admin-login",async(req, res) => {
     let adminData=await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+req.body.address+'$', "$options": "i"}}).exec();
     if(adminData){
       const jwtData = {
-        expiresIn:"2 hours" 
+        expiresIn:"3 minutes" 
     };
       const token=jwt.sign({walletAddress:req.body.address},secret,jwtData)
       res.status(200).json(token)
