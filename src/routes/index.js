@@ -28,34 +28,46 @@ async function auth(req, res, next) {
   } 
   else if (authHeader.startsWith("Bearer ")){
     token = authHeader.substring(7, authHeader.length);
-    decode =jwt.verify(token, secret);
-    if(decode?.walletAddress){
-      var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
-      if(decryptedData){
-        next()
+    jwt.verify(token, secret, async function(err, decode) {
+      if (err) {
+        res.status(400).json({message:"You Token is expired"})
       }
       else{
-        res.status(400).json({message:"You are not authorized person"})
+        if(decode?.walletAddress){
+          var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
+          if(decryptedData){
+            next()
+          }
+          else{
+            res.status(400).json({message:"You are not authorized person"})
+          }
+        }
+        else{
+          res.status(400).json({message:"Your token is not valid/expired"})
+        }
       }
-    }
-    else{
-      res.status(400).json({message:"Your token is not valid/expired"})
-    }
+    });
   } 
   else {
-    decode =jwt.verify(token, secret);
-    if(decode?.walletAddress){
-      var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
-      if(decryptedData){
-        next()
+    jwt.verify(token, secret, async function(err, decode) {
+      if (err) {
+        res.status(400).json({message:"You Token is expired"})
       }
       else{
-        res.status(400).json({message:"You are not authorized person"})
+        if(decode?.walletAddress){
+          var decryptedData = await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+decode.walletAddress+'$', "$options": "i"}}).exec();
+          if(decryptedData){
+            next()
+          }
+          else{
+            res.status(400).json({message:"You are not authorized person"})
+          }
+        }
+        else{
+          res.status(400).json({message:"Your token is not valid/expired"})
+        }
       }
-    }
-    else{
-      res.status(400).json({message:"Your token is not valid/expired"})
-    }
+    });
   }
 };
 
