@@ -35,8 +35,6 @@ const s3 = new AWS.S3({
 });
 
 async function auth(req, res, next) {
-  var _decode;
-
   var authHeader = req.header('authorization');
   let token, decode;
 
@@ -46,30 +44,62 @@ async function auth(req, res, next) {
     });
   } else if (authHeader.startsWith("Bearer ")) {
     token = authHeader.substring(7, authHeader.length);
-    decode = jwt.verify(token, secret);
-  } else {
-    decode = jwt.verify(token, secret);
-    ;
-  }
+    jwt.verify(token, secret, async function (err, decode) {
+      if (err) {
+        res.status(400).json({
+          message: "You Token is expired"
+        });
+      } else {
+        if (decode !== null && decode !== void 0 && decode.walletAddress) {
+          var decryptedData = await _models.default.adminRegisterModel.findOne({
+            walletAddress: {
+              '$regex': '^' + decode.walletAddress + '$',
+              "$options": "i"
+            }
+          }).exec();
 
-  if ((_decode = decode) !== null && _decode !== void 0 && _decode.walletAddress) {
-    var decryptedData = await _models.default.adminRegisterModel.findOne({
-      walletAddress: {
-        '$regex': '^' + decode.walletAddress + '$',
-        "$options": "i"
+          if (decryptedData) {
+            next();
+          } else {
+            res.status(400).json({
+              message: "You are not authorized person"
+            });
+          }
+        } else {
+          res.status(400).json({
+            message: "Your token is not valid/expired"
+          });
+        }
       }
-    }).exec();
-
-    if (decryptedData) {
-      next();
-    } else {
-      res.status(400).json({
-        message: "You are not authorized person"
-      });
-    }
+    });
   } else {
-    res.status(400).json({
-      message: "Your token is not valid/expired"
+    jwt.verify(token, secret, async function (err, decode) {
+      if (err) {
+        res.status(400).json({
+          message: "You Token is expired"
+        });
+      } else {
+        if (decode !== null && decode !== void 0 && decode.walletAddress) {
+          var decryptedData = await _models.default.adminRegisterModel.findOne({
+            walletAddress: {
+              '$regex': '^' + decode.walletAddress + '$',
+              "$options": "i"
+            }
+          }).exec();
+
+          if (decryptedData) {
+            next();
+          } else {
+            res.status(400).json({
+              message: "You are not authorized person"
+            });
+          }
+        } else {
+          res.status(400).json({
+            message: "Your token is not valid/expired"
+          });
+        }
+      }
     });
   }
 }
