@@ -24,6 +24,7 @@ async function auth(req, res, next) {
   var authHeader = req.header('authorization');
   let token,decode;
   if (!authHeader){
+    console.log("Token is not defined")
     res.status(500).json({message:"Token is not defined"})
   } 
   else if (authHeader.startsWith("Bearer ")){
@@ -40,10 +41,12 @@ async function auth(req, res, next) {
       next()
     }
     else{
+      console.log("Not decryptedData")
       res.status(400).json({message:"You are not authorized person"})
     }
   }
   else{
+    console.log("Your token is not valid/expired")
     res.status(400).json({message:"Your token is not valid/expired"})
   }
 };

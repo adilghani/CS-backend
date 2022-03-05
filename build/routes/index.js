@@ -52,8 +52,6 @@ async function auth(req, res, next) {
     ;
   }
 
-  console.log(decode);
-
   if ((_decode = decode) !== null && _decode !== void 0 && _decode.walletAddress) {
     var decryptedData = await _models.default.adminRegisterModel.findOne({
       walletAddress: {
@@ -884,7 +882,7 @@ routes.post("/admin-login", async (req, res) => {
 
     if (adminData) {
       const jwtData = {
-        expiresIn: "2 hours"
+        expiresIn: "3 minutes"
       };
       const token = jwt.sign({
         walletAddress: req.body.address
