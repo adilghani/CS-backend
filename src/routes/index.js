@@ -145,7 +145,7 @@ routes
     }
   })
 
-routes.get("/get-all-users",auth, (req, res) => {
+routes.get("/get-all-users", (req, res) => {
   try{
     let user = models.userModel.find();
     user.exec((err,data)=>{
@@ -296,7 +296,7 @@ routes
     }
 });
 
-  routes.get("/feature_collection",auth, async (req, res) => {
+  routes.get("/feature_collection", async (req, res) => {
     try{
       models.uploadfeaturemodel.find((err,data)=>{
         if(err) throw err;
@@ -686,7 +686,7 @@ routes.post("/nfts-wrt-tokenaddr",(req, res) => {
   }
 })
 
-routes.get("/nft-collector",auth,(req, res) => {
+routes.get("/nft-collector",(req, res) => {
   var nftdata=models.nftControllerModel.find();
   nftdata.exec()
   .then((data)=>{
@@ -1039,7 +1039,7 @@ routes.get("/newest-nft",(req, res) => {
   })
 })
 
-routes.get("/count-nft",auth,(req, res) => {
+routes.get("/count-nft",(req, res) => {
   models.nftControllerModel.countDocuments({}, function(err, count) {
     res.status(202).json(count)
   })
@@ -1058,7 +1058,7 @@ routes.post("/nft-pagination",(req, res) => {
   })
 })
 
-routes.get("/feature-nft",auth,(req, res) => {
+routes.get("/feature-nft",(req, res) => {
   var nftdata=models.nftControllerModel.find({featured: true});
   nftdata.exec()
   .then((data)=>{
@@ -1281,7 +1281,7 @@ routes.delete("/delete_slider/:id",auth,upload,(req,res)=>{
   })
 });
 
-routes.get("/getsliders",auth,(req,res)=>{
+routes.get("/getsliders",(req,res)=>{
   let filterData=models.uploadSliderModel.find();
   filterData.exec(function(err,data){
     if(err) throw err;
