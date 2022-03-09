@@ -462,7 +462,7 @@ routes
             parseInt(body.views) !== 0)
         ) {
           if (obj.viewedAddresses?.includes(body.address)) {
-            res.status(200).json("Already viewed");
+            return res.status(200).json("Already viewed");
           } else {
             await models.viewAndLikeModel.findOneAndUpdate(
               { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
@@ -479,7 +479,7 @@ routes
             parseInt(body.likes) !== 0)
         ) {
           if (obj.likedAccounts?.includes(body.address)) {
-            res.status(200).json("Already Liked");
+            return res.status(200).json("Already Liked");
           }
           //else if
           else {

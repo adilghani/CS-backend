@@ -35,8 +35,7 @@ routes.use(bodyParser.json());
 const s3 = new AWS.S3({
   accessKeyId: "AKIASAFVMRRSMD5RISOV",
   secretAccessKey: "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"
-});
-routes.use(apiAuth.userAuth);
+}); // routes.use(apiAuth.userAuth)
 
 async function auth(req, res, next) {
   var authHeader = req.header('authorization');
@@ -646,7 +645,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
         if (obj.viewedAddresses?.includes(body.address)) {
-          throw new Error("Already viewed");
+          return res.status(200).json("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
             tokenAddr: {
@@ -664,7 +663,7 @@ routes.route("/view-and-like").get(async (req, res) => {
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
         if (obj.likedAccounts?.includes(body.address)) {
-          throw new Error("Already Liked");
+          return res.status(200).json("Already Liked");
         } //else if
         else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -927,6 +926,25 @@ routes.post("/single-nft", (req, res) => {
       tokenId: req.body.tokenId,
       tokenAddr: {
         '$regex': '^' + req.body.tokenAddr + '$',
+        "$options": "i"
+      }
+    });
+
+    ;
+    nftdata.exec().then(data => {
+      res.status(200).json(data);
+    }).catch(err => res.status(500).json({
+      message: error.toString()
+    }));
+  }
+});
+routes.post("/nft-wrt-owner", (req, res) => {
+  if (req.body.owner == undefined) {
+    res.status(500).json("Parameters are wrong");
+  } else {
+    var nftdata = _models.default.nftControllerModel.find({
+      owner: {
+        '$regex': '^' + req.body.owner + '$',
         "$options": "i"
       }
     });
