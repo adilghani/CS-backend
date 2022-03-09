@@ -23,7 +23,10 @@ const fs = require('fs');
 const AWS = require('aws-sdk');
 
 const secret = "1b4b2481e997ff0b8be28106f97040aa d4cb154b4a0b7e135354946c2b572110 b5d60d263e8e9596acd942a9402b23e0 e2705442w261f902b08fa9d220e3c906037 b8184ea414e848d2323838b30367703be82e c4e417215bb9dsddd4d231a8df5799d7f84 eb3e951fd15ae401513b56c684514ea3";
-routes.use(cookieParser()); // Body Parsers
+routes.use(cookieParser());
+
+const apiAuth = require("./middleware"); // Body Parsers
+
 
 routes.use(bodyParser.urlencoded({
   extended: false
@@ -33,6 +36,7 @@ const s3 = new AWS.S3({
   accessKeyId: "AKIASAFVMRRSMD5RISOV",
   secretAccessKey: "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"
 });
+routes.use(apiAuth.userAuth);
 
 async function auth(req, res, next) {
   var authHeader = req.header('authorization');
@@ -50,7 +54,7 @@ async function auth(req, res, next) {
           message: "You Token is expired"
         });
       } else {
-        if (decode !== null && decode !== void 0 && decode.walletAddress) {
+        if (decode?.walletAddress) {
           var decryptedData = await _models.default.adminRegisterModel.findOne({
             walletAddress: {
               '$regex': '^' + decode.walletAddress + '$',
@@ -79,7 +83,7 @@ async function auth(req, res, next) {
           message: "You Token is expired"
         });
       } else {
-        if (decode !== null && decode !== void 0 && decode.walletAddress) {
+        if (decode?.walletAddress) {
           var decryptedData = await _models.default.adminRegisterModel.findOne({
             walletAddress: {
               '$regex': '^' + decode.walletAddress + '$',
@@ -223,7 +227,7 @@ routes.post("/verified_user", (req, res) => {
     });
   }
 });
-routes.get("/get-all-users", auth, (req, res) => {
+routes.get("/get-all-users", (req, res) => {
   try {
     let user = _models.default.userModel.find();
 
@@ -262,12 +266,10 @@ routes.route("/collection").post(async (req, res) => {
         res.send("Successfully token Added!");
       });
     } else {
-      var _body$owner, _body$nftAddress;
-
       await _models.default.collectionModel.create({
         name: body.name,
-        owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
-        nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
+        owner: body.owner?.toLowerCase(),
+        nftAddress: body.nftAddress?.toLowerCase(),
         avatar: body.avatar,
         background: body.background,
         description: body.description,
@@ -431,7 +433,7 @@ routes.post("/feature_collection", auth, uploadcoll, (req, res) => {
     });
   }
 });
-routes.get("/feature_collection", auth, async (req, res) => {
+routes.get("/feature_collection", async (req, res) => {
   try {
     _models.default.uploadfeaturemodel.find((err, data) => {
       if (err) throw err;
@@ -522,9 +524,7 @@ routes.get("/collection-names", async (req, res) => {
 });
 routes.get("/my-collections", async (req, res) => {
   try {
-    var _req$query$owner;
-
-    const owner = (_req$query$owner = req.query.owner) === null || _req$query$owner === void 0 ? void 0 : _req$query$owner.toLowerCase();
+    const owner = req.query.owner?.toLowerCase();
     const token = req.query.token;
 
     if (owner && token) {
@@ -645,9 +645,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        var _obj$viewedAddresses;
-
-        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
+        if (obj.viewedAddresses?.includes(body.address)) {
           throw new Error("Already viewed");
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
@@ -665,9 +663,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        var _obj$likedAccounts;
-
-        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
+        if (obj.likedAccounts?.includes(body.address)) {
           throw new Error("Already Liked");
         } //else if
         else {
@@ -699,8 +695,6 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
-      var _body$address, _body$address2;
-
       await _models.default.viewAndLikeModel.create({
         tokenAddr: {
           '$regex': '^' + body.tokenAddr + '$',
@@ -709,8 +703,8 @@ routes.route("/view-and-like").get(async (req, res) => {
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
       });
     }
   } catch (error) {
@@ -966,7 +960,7 @@ routes.post("/nfts-wrt-tokenaddr", (req, res) => {
     }));
   }
 });
-routes.get("/nft-collector", auth, (req, res) => {
+routes.get("/nft-collector", (req, res) => {
   var nftdata = _models.default.nftControllerModel.find();
 
   nftdata.exec().then(data => {
@@ -1537,7 +1531,7 @@ routes.get("/newest-nft", (req, res) => {
     }
   });
 });
-routes.get("/count-nft", auth, (req, res) => {
+routes.get("/count-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({}, function (err, count) {
     res.status(202).json(count);
   });
@@ -1559,7 +1553,7 @@ routes.post("/nft-pagination", (req, res) => {
     });
   });
 });
-routes.get("/feature-nft", auth, (req, res) => {
+routes.get("/feature-nft", (req, res) => {
   var nftdata = _models.default.nftControllerModel.find({
     featured: true
   });
@@ -1857,7 +1851,7 @@ routes.delete("/delete_slider/:id", auth, upload, (req, res) => {
     });
   });
 });
-routes.get("/getsliders", auth, (req, res) => {
+routes.get("/getsliders", (req, res) => {
   let filterData = _models.default.uploadSliderModel.find();
 
   filterData.exec(function (err, data) {
