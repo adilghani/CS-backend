@@ -10,6 +10,7 @@ const fs = require('fs');
 const AWS = require('aws-sdk')
 const secret="1b4b2481e997ff0b8be28106f97040aa d4cb154b4a0b7e135354946c2b572110 b5d60d263e8e9596acd942a9402b23e0 e2705442w261f902b08fa9d220e3c906037 b8184ea414e848d2323838b30367703be82e c4e417215bb9dsddd4d231a8df5799d7f84 eb3e951fd15ae401513b56c684514ea3";
 routes.use(cookieParser())
+const apiAuth=require("./middleware")
 
 // Body Parsers
 routes.use(bodyParser.urlencoded({ extended: false }));
@@ -19,6 +20,8 @@ const s3 = new AWS.S3({
   accessKeyId: "AKIASAFVMRRSMD5RISOV",
   secretAccessKey: "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"
 });
+
+// routes.use(apiAuth.userAuth)
 
 async function auth(req, res, next) {
   var authHeader = req.header('authorization');
@@ -459,7 +462,7 @@ routes
             parseInt(body.views) !== 0)
         ) {
           if (obj.viewedAddresses?.includes(body.address)) {
-            throw new Error("Already viewed");
+            res.status(200).json("Already viewed");
           } else {
             await models.viewAndLikeModel.findOneAndUpdate(
               { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
@@ -476,7 +479,7 @@ routes
             parseInt(body.likes) !== 0)
         ) {
           if (obj.likedAccounts?.includes(body.address)) {
-            throw new Error("Already Liked");
+            res.status(200).json("Already Liked");
           }
           //else if
           else {
@@ -662,6 +665,20 @@ routes.post("/single-nft",(req, res) => {
   }
   else{
     var nftdata=models.nftControllerModel.findOne({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});;
+    nftdata.exec()
+    .then((data)=>{
+      res.status(200).json(data)
+    })
+    .catch((err)=>res.status(500).json({ message: error.toString()}))
+  }
+})
+
+routes.post("/nft-wrt-owner",(req, res) => {
+  if(req.body.owner == undefined){
+    res.status(500).json("Parameters are wrong")
+  }
+  else{
+    var nftdata=models.nftControllerModel.find({owner: { '$regex' : '^'+req.body.owner+'$', "$options": "i" }});;
     nftdata.exec()
     .then((data)=>{
       res.status(200).json(data)
