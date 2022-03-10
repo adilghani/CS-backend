@@ -462,7 +462,7 @@ routes
             parseInt(body.views) !== 0)
         ) {
           if (obj.viewedAddresses?.includes(body.address)) {
-            return res.status(200).json("Already viewed");
+            return res.status(200).json({message:"Already viewed",error:true});
           } else {
             await models.viewAndLikeModel.findOneAndUpdate(
               { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
@@ -479,7 +479,7 @@ routes
             parseInt(body.likes) !== 0)
         ) {
           if (obj.likedAccounts?.includes(body.address)) {
-            return res.status(200).json("Already Liked");
+            return res.status(200).json({message:"Already Liked",error:true});
           }
           //else if
           else {
@@ -678,7 +678,7 @@ routes.post("/nft-wrt-owner",(req, res) => {
     res.status(500).json("Parameters are wrong")
   }
   else{
-    var nftdata=models.nftControllerModel.find({owner: { '$regex' : '^'+req.body.owner+'$', "$options": "i" }});;
+    var nftdata=models.nftControllerModel.find({owner: { '$regex' : '^'+req.body.owner+'$', "$options": "i" }});
     nftdata.exec()
     .then((data)=>{
       res.status(200).json(data)
