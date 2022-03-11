@@ -939,6 +939,9 @@ routes.post("/update-nft-status",auth,(req, res) => {
 })
 
 routes.post("/most-liked-nft",async (req, res) => {
+  let limit=parseInt(req.body.size);
+  let page=parseInt(req.body.page);
+  
   let filterData=await models.nftControllerModel.aggregate([
     {$match : {isOnSell:true,status:"active"}},
     {$lookup: {
@@ -963,8 +966,8 @@ routes.post("/most-liked-nft",async (req, res) => {
       { "$sort": {"likes":-1} },
       {$facet: {
         data: [
-          { $skip : (req.body.page-1)*req.body.size},
-          { $limit : req.body.size }
+          { $skip : (page-1)*limit},
+          { $limit : limit }
         ],
         Total:[
           { $group:{ _id :null ,count:{$sum:1}}}
@@ -977,6 +980,9 @@ routes.post("/most-liked-nft",async (req, res) => {
 })
 
 routes.post("/least-liked-nft",async (req, res) => {
+  let limit=parseInt(req.body.size);
+  let page=parseInt(req.body.page);
+
   let filterData=await models.nftControllerModel.aggregate([
     {$match : {isOnSell:true,status:"active"}},
     {$lookup: {
@@ -1001,8 +1007,8 @@ routes.post("/least-liked-nft",async (req, res) => {
       { "$sort": {"likes":1} },
       {$facet: {
         data: [
-          { $skip : (req.body.page-1)*req.body.size},
-          { $limit : req.body.size }
+          { $skip : (page-1)*limit},
+          { $limit : limit }
         ],
         Total:[
           { $group:{ _id :null ,count:{$sum:1}}}
