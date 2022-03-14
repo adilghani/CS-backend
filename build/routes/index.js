@@ -962,25 +962,82 @@ routes.post("/nft-wrt-owner", (req, res) => {
     }));
   }
 });
-routes.post("/nfts-wrt-tokenaddr", (req, res) => {
-  if (req.body.tokenIds == undefined || req.body.tokenAddr == undefined) {
-    res.status(500).json("Payload are wrong");
-  } else {
-    let tokenId = req.body.tokenIds.toString();
-    let tokenIds = tokenId.replace(/,/g, "|");
+routes.post("/nfts-wrt-tokenaddr", async (req, res) => {
+  try {
+    if (req.body.tokenIds == undefined || req.body.tokenAddr == undefined || req.body.tokenIds.length < 1 || req.body.tokenIds.length == undefined) {
+      res.status(500).json("Payload are wrong");
+    } else {
+      let data = [];
+      let tokenIds = req.body.tokenIds;
+      let i = 0;
+      findNft(tokenIds[i]);
 
-    var nftdata = _models.default.nftControllerModel.find({
-      tokenAddr: req.body.tokenAddr,
-      tokenId: {
-        "$regex": tokenIds
+      async function findNft(id) {
+        let nft = await _models.default.nftControllerModel.findOne({
+          tokenId: id,
+          tokenAddr: {
+            '$regex': '^' + req.body.tokenAddr + '$',
+            "$options": "i"
+          }
+        }).lean().exec();
+
+        if (nft) {
+          data.push(nft);
+        }
+
+        if (i !== tokenIds.length - 1) {
+          i++;
+          await findNft(tokenIds[i]);
+        } else {
+          return res.status(200).json(data);
+        }
       }
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
     });
+  }
+});
+routes.post("/nfts-wrt-tokenaddr&id", async (req, res) => {
+  try {
+    if (req.body.nftToken == undefined || req.body.nftToken.length < 1 || req.body.nftToken.length == undefined) {
+      res.status(500).json("Payload are wrong");
+    } else {
+      let data = [];
+      let tokens = req.body.nftToken;
+      let i = 0;
+      findNft(tokens[i]);
 
-    nftdata.exec().then(data => {
-      res.status(200).json(data);
-    }).catch(err => res.status(500).json({
-      message: error.toString()
-    }));
+      async function findNft(token) {
+        if (!Object.keys(token).length < 2 && token.id && token.address) {
+          let nft = await _models.default.nftControllerModel.findOne({
+            tokenId: token.id,
+            tokenAddr: {
+              '$regex': '^' + token.address + '$',
+              "$options": "i"
+            }
+          }).lean().exec();
+
+          if (nft) {
+            data.push(nft);
+          }
+        }
+
+        if (i !== tokens.length - 1) {
+          i++;
+          await findNft(tokens[i]);
+        } else {
+          return res.status(200).json(data);
+        }
+      }
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
   }
 });
 routes.get("/nft-collector", (req, res) => {
