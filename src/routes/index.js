@@ -645,7 +645,7 @@ routes.post("/admin-login",async(req, res) => {
     let adminData=await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+req.body.address+'$', "$options": "i"}}).exec();
     if(adminData){
       const jwtData = {
-        expiresIn:"3 minutes" 
+        expiresIn:"2 hours" 
     };
       const token=jwt.sign({walletAddress:req.body.address},secret,jwtData)
       res.status(200).json(token)
