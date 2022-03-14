@@ -301,7 +301,7 @@ routes
 
   routes.get("/feature_collection", async (req, res) => {
     try{
-      models.uploadfeaturemodel.find((err,data)=>{
+      models.uploadfeaturemodel.find().lean().exec((err,data)=>{
         if(err) throw err;
         res.status(200).json({data})
       })
