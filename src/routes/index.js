@@ -197,30 +197,32 @@ routes
   .put(async (req, res) => {
     try {
       const { body } = req;
-      const existingOne = await models.collectionModel.findOne({_id: body._id,}).exec();
+      const existingOne = await models.collectionModel.findOne({_id: body._id,}).lean().exec();
       if (!existingOne) {
-        throw new Error("No exist id");
+        return res.status(500).json("No exist id");
       }
-      let data = {
-        name: {'$regex' : '^'+body.name+'$', "$options": "i"},
-      };
-      if (!!body.avatar) {
-        data = { ...data, avatar: body.avatar };
+      else{
+        let data = {
+          name: body.name
+        };
+        if (!!body.avatar) {
+          data = { ...data, avatar: body.avatar };
+        }
+        if (!!body.background) {
+          data = { ...data, background: body.background };
+        }
+        if (!!body.description) {
+          data = { ...data, description: body.description };
+        }
+        if (!!body.externalUrl) {
+          data = { ...data, externalUrl: body.externalUrl };
+        }
+        if (!!body.tokensId) {
+          data = { ...data, tokens: body.tokens };
+        }
+        await models.collectionModel.updateOne({ _id: body._id }, data);
+        res.status(200).json("Successfully updated!");
       }
-      if (!!body.background) {
-        data = { ...data, background: body.background };
-      }
-      if (!!body.description) {
-        data = { ...data, description: body.description };
-      }
-      if (!!body.externalUrl) {
-        data = { ...data, externalUrl: body.externalUrl };
-      }
-      if (!!body.tokens) {
-        data = { ...data, tokens: body.tokens };
-      }
-      await models.collectionModel.updateOne({ _id: body._id }, data);
-      res.status(200).json("Successfully updated!");
     } catch (error) {
       res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
@@ -249,6 +251,105 @@ routes
       res.status(500).json({ message: error.toString() });
     }
   });
+
+
+// Version 2 of Collection API
+routes
+  .route("/collection/v2")
+  .post(async (req, res) => {
+    try {
+      const { body } = req;
+      const existingOne = await models.collectionModel.findOne({
+        name: body.name,
+      });
+
+      let tokenId = parseInt(body.tokenId);
+      let tokenAddress=body.tokenAddr;
+
+      if (existingOne) {
+        let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
+          $push: {'tokens': {tokenId,tokenAddress}}
+        })
+        tokenUpdate.exec((err)=>{
+          if(err) throw err;
+          res.send("Successfully token Added!")
+        })
+      }
+      else{
+        await models.collectionModel.create({
+          name: body.name,
+          owner: body.owner?.toLowerCase(),
+          nftAddress: body.nftAddress?.toLowerCase(),
+          avatar: body.avatar,
+          background: body.background,
+          description: body.description,
+          externalUrl: body.externalUrl,
+          tokens: {tokenId,tokenAddress} || [],
+        });
+        res.status(200).json("Successfully created!");
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
+  })
+  .put(async (req, res) => {
+    try {
+      const { body } = req;
+      const existingOne = await models.collectionModel.findOne({_id: body._id,}).lean().exec();
+      if (!existingOne) {
+        return res.status(500).json("No exist id");
+      }
+      else{
+        let data = {
+          name: body.name
+        };
+        if (!!body.avatar) {
+          data = { ...data, avatar: body.avatar };
+        }
+        if (!!body.background) {
+          data = { ...data, background: body.background };
+        }
+        if (!!body.description) {
+          data = { ...data, description: body.description };
+        }
+        if (!!body.externalUrl) {
+          data = { ...data, externalUrl: body.externalUrl };
+        }
+        if (!!body.tokens) {
+          data = { ...data, tokens: body.tokens};
+        }
+        await models.collectionModel.updateOne({ _id: body._id }, data);
+        res.status(200).json("Successfully updated!");
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
+  })
+  .get(async (req, res) => {
+    try {
+      const name = req.query.name;
+      const collection = await models.collectionModel
+        .findOne({ name })
+        .lean()
+        .exec();
+      res.status(200).json({ ...collection });
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
+  })
+  .delete(async (req, res) => {
+    try {
+      const { body } = req;
+      await models.collectionModel.findOneAndDelete({
+        _id: body._id,
+      });
+      return res.status(200).json("Successfully deleted");
+    } catch (error) {
+      console.log("[collection delete] error => ", error);
+      res.status(500).json({ message: error.toString() });
+    }
+  });
+
 
   const featureCollectionPath = path.join(__dirname,"../","../public/featureCollectionImage/");
   // for file upload
@@ -377,10 +478,29 @@ routes.get("/collection-names", async (req, res) => {
 
 routes.get("/my-collections", async (req, res) => {
   try {
-    const owner = req.query.owner?.toLowerCase();
+    const owner = { '$regex' : '^'+req.query.owner+'$', "$options": "i" };
     const token = req.query.token;
     if(owner && token){
       const collections = await models.collectionModel.find({$and:[ {owner:owner},{tokens:parseInt(token)} ]}).lean().exec();
+      res.status(200).json(collections);
+    }
+    else if(owner){
+      const collections = await models.collectionModel.find({ owner }).lean().exec();
+      res.status(200).json(collections);
+    }
+    else{
+      res.status(400).json({message:"Required value not found"});
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
+});
+
+routes.get("/my-collections/v2", async (req, res) => {
+  try {
+    const owner = { '$regex' : '^'+req.query.owner+'$', "$options": "i" };
+    if(owner && req.query.tokenId && tokenAddress){
+      const collections = await models.collectionModel.find({owner:owner,tokens:{$elemMatch:{tokenId: parseInt(req.query.tokenId),tokenAddress: {'$regex': '^'+req.query.tokenAddress+'$','$options': 'i'}}}}).lean().exec();
       res.status(200).json(collections);
     }
     else if(owner){
@@ -716,7 +836,7 @@ routes.post("/nfts-wrt-tokenaddr",async (req, res) => {
   }
 })
 
-routes.post("/nfts-wrt-tokenaddr&id",async (req, res) => {
+routes.post("/nfts-wrt-tokenaddr-and-id",async (req, res) => {
   try{
     if(req.body.nftToken == undefined || req.body.nftToken.length < 1 || req.body.nftToken.length == undefined){
       res.status(500).json("Payload are wrong")
