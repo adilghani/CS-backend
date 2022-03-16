@@ -518,7 +518,7 @@ var Storage = multer.diskStorage({
 var uploadcoll = multer({
   storage: Storage
 }).single('pic');
-routes.post("/feature_collection", auth, uploadcoll, (req, res) => {
+routes.post("/feature_collection", uploadcoll, (req, res) => {
   try {
     if (req.file == undefined) {
       res.status(400).json({
@@ -695,16 +695,6 @@ routes.get("/my-collections/v2", async (req, res) => {
       '$regex': '^' + req.query.owner + '$',
       "$options": "i"
     };
-    let tokenId = parseInt(req.query.tokenId);
-    let tokenAddress = {
-      '$regex': '^' + req.query.tokenAddress + '$',
-      "$options": "i"
-    };
-    console.log(owner);
-    console.log({
-      tokenId,
-      tokenAddress
-    });
 
     if (owner && req.query.tokenId && tokenAddress) {
       const collections = await _models.default.collectionModel.find({
@@ -1185,7 +1175,7 @@ routes.post("/nfts-wrt-tokenaddr", async (req, res) => {
     });
   }
 });
-routes.post("/nfts-wrt-tokenaddr&id", async (req, res) => {
+routes.post("/nfts-wrt-tokenaddr-and-id", async (req, res) => {
   try {
     if (req.body.nftToken == undefined || req.body.nftToken.length < 1 || req.body.nftToken.length == undefined) {
       res.status(500).json("Payload are wrong");

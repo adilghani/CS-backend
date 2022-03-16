@@ -499,7 +499,7 @@ routes.get("/my-collections", async (req, res) => {
 routes.get("/my-collections/v2", async (req, res) => {
   try {
     const owner = { '$regex' : '^'+req.query.owner+'$', "$options": "i" };
-    if(owner && req.query.tokenId && tokenAddress){
+    if(owner && req.query.tokenId && req.query.tokenAddress){
       const collections = await models.collectionModel.find({owner:owner,tokens:{$elemMatch:{tokenId: parseInt(req.query.tokenId),tokenAddress: {'$regex': '^'+req.query.tokenAddress+'$','$options': 'i'}}}}).lean().exec();
       res.status(200).json(collections);
     }
