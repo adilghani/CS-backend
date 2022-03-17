@@ -669,11 +669,8 @@ routes.get("/my-collections", async (req, res) => {
 
     if (owner && token) {
       const collections = await _models.default.collectionModel.find({
-        $and: [{
-          owner: owner
-        }, {
-          tokens: parseInt(token)
-        }]
+        owner: owner,
+        "tokens.tokenId": parseInt(token)
       }).lean().exec();
       res.status(200).json(collections);
     } else if (owner) {
@@ -941,11 +938,18 @@ routes.post("/usersviews_and_userslikes", (req, res) => {
   });
 });
 routes.post("/update-notification-bar", async (req, res) => {
-  let noti = await _models.default.notificationmodel.findOne().lean().exec();
-  await _models.default.notificationmodel.findOneAndUpdate({
-    _id: noti._id
-  }, req.body).exec();
-  return res.status(200).json("Updated Successfully");
+  try {
+    let noti = await _models.default.notificationmodel.findOne().lean().exec();
+    await _models.default.notificationmodel.findOneAndUpdate({
+      _id: noti._id
+    }, req.body).exec();
+    return res.status(200).json("Updated Successfully");
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.post("/usersviews", (req, res) => {
   let viewedNft = [];

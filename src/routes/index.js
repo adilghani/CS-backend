@@ -170,7 +170,7 @@ routes
       
       if (existingOne) {
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
-          $push: {'tokens': parseInt(body.tokens)}
+          $push: {'tokens.tokenId': parseInt(body.tokens)}
         })
         tokenUpdate.exec((err)=>{
           if(err) throw err;
@@ -186,7 +186,7 @@ routes
           background: body.background,
           description: body.description,
           externalUrl: body.externalUrl,
-          tokens: parseInt(body.tokens) || [],
+          tokens: {"tokenId":parseInt(body.tokens)} || [],
         });
         res.status(200).json("Successfully created!");
       }
@@ -217,7 +217,7 @@ routes
         if (!!body.externalUrl) {
           data = { ...data, externalUrl: body.externalUrl };
         }
-        if (!!body.tokensId) {
+        if (!!body.tokens) {
           data = { ...data, tokens: body.tokens };
         }
         await models.collectionModel.updateOne({ _id: body._id }, data);
@@ -481,7 +481,7 @@ routes.get("/my-collections", async (req, res) => {
     const owner = { '$regex' : '^'+req.query.owner+'$', "$options": "i" };
     const token = req.query.token;
     if(owner && token){
-      const collections = await models.collectionModel.find({$and:[ {owner:owner},{tokens:parseInt(token)} ]}).lean().exec();
+      const collections = await models.collectionModel.find({owner:owner,"tokens.tokenId": parseInt(token)}).lean().exec();
       res.status(200).json(collections);
     }
     else if(owner){
@@ -514,6 +514,7 @@ routes.get("/my-collections/v2", async (req, res) => {
     res.status(500).json({ message: "Some thing went wrong" , error:error.message});
   }
 });
+
 
 routes.put("/insert-token-to-collection", async (req, res) => {
   try {
@@ -756,17 +757,53 @@ routes.post("/get-following",(req, res) => {
   })
 })
 
-routes.post("/admin-register",(req, res) => {
-  if(req.body.account){
-    let createAdmin=new models.adminRegisterModel({
-      walletAddress: req.body.account,
-    })
-    createAdmin.save(function(){
-      res.send("Admin Stored Succcesfully");
-    });
+routes.post("/admin-register",async(req, res) => {
+  try{
+    if(!req.body.walletAddress || !req.body.name || !req.body.email){
+      return res.status(500).json("Parameters are wrong");
+    }
+    else{
+      let adminData=await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+req.body.walletAddress+'$', "$options": "i"}}).exec();
+      if(adminData){
+        res.status(500).json("Already Admin");
+      }
+      else{
+        let createAdmin=new models.adminRegisterModel({
+          walletAddress: req.body.walletAddress,
+          name:req.body.name,
+          email:req.body.email
+        })
+        createAdmin.save(function(){
+          res.status(200).json("Admin registerd Succcesfully");
+        });
+      }
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
   }
-  else{
-    res.status.send("address are empty")
+})
+
+routes.post("/admin-update",async(req, res) => {
+  try{
+      let adminData=await models.adminRegisterModel.findOne({_id:req.body.id}).exec();
+      if(adminData){
+        await models.adminRegisterModel.findOneAndUpdate({_id:req.body.id},req.body).exec();
+        res.status(200).json("Updated succesfully");
+      }
+      else{
+        res.status(500).json("Object Id is necessary to update Admin");
+      }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
+})
+
+routes.get("/admin-all",async(req, res) => {
+  try{
+      let adminData=await models.adminRegisterModel.find().lean().exec();
+      res.status(200).json(adminData);
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
   }
 })
 
