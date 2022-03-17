@@ -123,6 +123,11 @@ const adminRegiterSchema = new mongoose.Schema({
   }
 },{timestamps: true});
 
+const notificationSchema = new mongoose.Schema({
+  text:String,
+  color:String
+},{timestamps: true});
+
 const uploadSliderSchema = new mongoose.Schema({
   slider:String,
   imageUrl: {
@@ -140,6 +145,7 @@ const uploadfeatureSchema = new mongoose.Schema({
   },
   link:String
 },{timestamps: true});
+
 const userModel = mongoose.model('user', userSchema);
 const collectionModel = mongoose.model('collection', collectionSchema);
 const viewAndLikeModel = mongoose.model('viewAndLike', viewAndLikeSchema);
@@ -147,6 +153,7 @@ const nftControllerModel = mongoose.model('nftController', nftControllerSchema);
 const adminRegisterModel = mongoose.model('Admins', adminRegiterSchema);
 const uploadSliderModel = mongoose.model('slider', uploadSliderSchema);
 const uploadfeaturemodel = mongoose.model('featurecollection', uploadfeatureSchema);
+const notificationmodel = mongoose.model('notification', notificationSchema);
 
 const models = {
   userModel,
@@ -155,7 +162,8 @@ const models = {
   nftControllerModel,
   adminRegisterModel,
   uploadSliderModel,
-  uploadfeaturemodel
+  uploadfeaturemodel,
+  notificationmodel
 };
 
 export default models;

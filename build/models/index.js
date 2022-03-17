@@ -149,6 +149,12 @@ const adminRegiterSchema = new _mongoose.default.Schema({
 }, {
   timestamps: true
 });
+const notificationSchema = new _mongoose.default.Schema({
+  text: String,
+  color: String
+}, {
+  timestamps: true
+});
 const uploadSliderSchema = new _mongoose.default.Schema({
   slider: String,
   imageUrl: {
@@ -184,6 +190,8 @@ const uploadSliderModel = _mongoose.default.model('slider', uploadSliderSchema);
 
 const uploadfeaturemodel = _mongoose.default.model('featurecollection', uploadfeatureSchema);
 
+const notificationmodel = _mongoose.default.model('notification', notificationSchema);
+
 const models = {
   userModel,
   collectionModel,
@@ -191,7 +199,8 @@ const models = {
   nftControllerModel,
   adminRegisterModel,
   uploadSliderModel,
-  uploadfeaturemodel
+  uploadfeaturemodel,
+  notificationmodel
 };
 var _default = models;
 exports.default = _default;

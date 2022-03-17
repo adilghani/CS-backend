@@ -53,7 +53,7 @@ async function auth(req, res, next) {
           message: "You Token is expired"
         });
       } else {
-        if (decode?.walletAddress) {
+        if (decode !== null && decode !== void 0 && decode.walletAddress) {
           var decryptedData = await _models.default.adminRegisterModel.findOne({
             walletAddress: {
               '$regex': '^' + decode.walletAddress + '$',
@@ -82,7 +82,7 @@ async function auth(req, res, next) {
           message: "You Token is expired"
         });
       } else {
-        if (decode?.walletAddress) {
+        if (decode !== null && decode !== void 0 && decode.walletAddress) {
           var decryptedData = await _models.default.adminRegisterModel.findOne({
             walletAddress: {
               '$regex': '^' + decode.walletAddress + '$',
@@ -265,10 +265,12 @@ routes.route("/collection").post(async (req, res) => {
         res.send("Successfully token Added!");
       });
     } else {
+      var _body$owner, _body$nftAddress;
+
       await _models.default.collectionModel.create({
         name: body.name,
-        owner: body.owner?.toLowerCase(),
-        nftAddress: body.nftAddress?.toLowerCase(),
+        owner: (_body$owner = body.owner) === null || _body$owner === void 0 ? void 0 : _body$owner.toLowerCase(),
+        nftAddress: (_body$nftAddress = body.nftAddress) === null || _body$nftAddress === void 0 ? void 0 : _body$nftAddress.toLowerCase(),
         avatar: body.avatar,
         background: body.background,
         description: body.description,
@@ -399,10 +401,12 @@ routes.route("/collection/v2").post(async (req, res) => {
         res.send("Successfully token Added!");
       });
     } else {
+      var _body$owner2, _body$nftAddress2;
+
       await _models.default.collectionModel.create({
         name: body.name,
-        owner: body.owner?.toLowerCase(),
-        nftAddress: body.nftAddress?.toLowerCase(),
+        owner: (_body$owner2 = body.owner) === null || _body$owner2 === void 0 ? void 0 : _body$owner2.toLowerCase(),
+        nftAddress: (_body$nftAddress2 = body.nftAddress) === null || _body$nftAddress2 === void 0 ? void 0 : _body$nftAddress2.toLowerCase(),
         avatar: body.avatar,
         background: body.background,
         description: body.description,
@@ -518,7 +522,7 @@ var Storage = multer.diskStorage({
 var uploadcoll = multer({
   storage: Storage
 }).single('pic');
-routes.post("/feature_collection", uploadcoll, (req, res) => {
+routes.post("/feature_collection", auth, uploadcoll, (req, res) => {
   try {
     if (req.file == undefined) {
       res.status(400).json({
@@ -696,7 +700,7 @@ routes.get("/my-collections/v2", async (req, res) => {
       "$options": "i"
     };
 
-    if (owner && req.query.tokenId && tokenAddress) {
+    if (owner && req.query.tokenId && req.query.tokenAddress) {
       const collections = await _models.default.collectionModel.find({
         owner: owner,
         tokens: {
@@ -819,7 +823,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       // update
       //VIEWS ARE NOT EQUAL ? THEN CHECK IF ADDRESS IS PRESENT IN ARRAY
       if (parseInt(body.views) !== parseInt(obj.views) && parseInt(body.views) !== 0 || parseInt(body.views) === parseInt(obj.views) && parseInt(body.views) !== 0) {
-        if (obj.viewedAddresses?.includes(body.address)) {
+        var _obj$viewedAddresses;
+
+        if ((_obj$viewedAddresses = obj.viewedAddresses) !== null && _obj$viewedAddresses !== void 0 && _obj$viewedAddresses.includes(body.address)) {
           return res.status(200).json({
             message: "Already viewed",
             error: true
@@ -840,7 +846,9 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       if (parseInt(body.likes) !== parseInt(obj.likes) && parseInt(body.likes) !== 0 || parseInt(body.likes) === parseInt(obj.likes) && parseInt(body.likes) !== 0) {
-        if (obj.likedAccounts?.includes(body.address)) {
+        var _obj$likedAccounts;
+
+        if ((_obj$likedAccounts = obj.likedAccounts) !== null && _obj$likedAccounts !== void 0 && _obj$likedAccounts.includes(body.address)) {
           return res.status(200).json({
             message: "Already Liked",
             error: true
@@ -875,6 +883,8 @@ routes.route("/view-and-like").get(async (req, res) => {
       });
       res.status(200).json(newUpdatedInfo);
     } else {
+      var _body$address, _body$address2;
+
       await _models.default.viewAndLikeModel.create({
         tokenAddr: {
           '$regex': '^' + body.tokenAddr + '$',
@@ -883,8 +893,8 @@ routes.route("/view-and-like").get(async (req, res) => {
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
-        viewedAddresses: body.views > 0 ? [body.address?.toLowerCase()] : [],
-        likedAccounts: body.likes > 0 ? [body.address?.toLowerCase()] : []
+        viewedAddresses: body.views > 0 ? [(_body$address = body.address) === null || _body$address === void 0 ? void 0 : _body$address.toLowerCase()] : [],
+        likedAccounts: body.likes > 0 ? [(_body$address2 = body.address) === null || _body$address2 === void 0 ? void 0 : _body$address2.toLowerCase()] : []
       });
     }
   } catch (error) {
@@ -929,6 +939,13 @@ routes.post("/usersviews_and_userslikes", (req, res) => {
       likedNft
     }), 3000);
   });
+});
+routes.post("/update-notification-bar", async (req, res) => {
+  let noti = await _models.default.notificationmodel.findOne().lean().exec();
+  await _models.default.notificationmodel.findOneAndUpdate({
+    _id: noti._id
+  }, req.body).exec();
+  return res.status(200).json("Updated Successfully");
 });
 routes.post("/usersviews", (req, res) => {
   let viewedNft = [];

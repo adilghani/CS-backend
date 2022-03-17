@@ -658,6 +658,16 @@ routes.post("/usersviews_and_userslikes",(req, res) => {
     })
 })
 
+routes.post("/update-notification-bar",async(req, res) => {
+  try{
+    let noti=await models.notificationmodel.findOne().lean().exec();
+    await models.notificationmodel.findOneAndUpdate({_id:noti._id},req.body).exec();
+    return res.status(200).json("Updated Successfully")
+  } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
+})
+
 
 routes.post("/usersviews",(req, res) => {
   let viewedNft =[];
