@@ -794,13 +794,13 @@ routes.post("/admin-register",async(req, res) => {
 
 routes.post("/admin-update",async(req, res) => {
   try{
-      let adminData=await models.adminRegisterModel.findOne({_id:req.body.id}).exec();
+      let adminData=await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+req.body.walletAddress+'$', "$options": "i"}}).exec();
       if(adminData){
-        await models.adminRegisterModel.findOneAndUpdate({_id:req.body.id},req.body).exec();
+        await models.adminRegisterModel.findOneAndUpdate({walletAddress:{'$regex' : '^'+req.body.walletAddress+'$', "$options": "i"}},req.body).exec();
         res.status(200).json("Updated succesfully");
       }
       else{
-        res.status(500).json("Object Id is necessary to update Admin");
+        res.status(500).json("Wallet Address is necessary to update Admin");
       }
   } catch (error) {
     res.status(500).json({ message: "Some thing went wrong" , error:error.message});
@@ -809,13 +809,13 @@ routes.post("/admin-update",async(req, res) => {
 
 routes.post("/admin-delete",async(req, res) => {
   try{
-      let adminData=await models.adminRegisterModel.findOne({_id:req.body.id}).exec();
+      let adminData=await models.adminRegisterModel.findOne({walletAddress:{'$regex' : '^'+req.body.walletAddress+'$', "$options": "i"}}).exec();
       if(adminData){
-        await models.adminRegisterModel.findOneAndDelete({_id:req.body.id}).exec();
+        await models.adminRegisterModel.findOneAndDelete({walletAddress:{'$regex' : '^'+req.body.walletAddress+'$', "$options": "i"}}).exec();
         res.status(200).json("Deleted succesfully");
       }
       else{
-        res.status(500).json("Object Id is necessary to update Admin");
+        res.status(500).json("Wallet Adddress is necessary to delete Admin");
       }
   } catch (error) {
     res.status(500).json({ message: "Some thing went wrong" , error:error.message});
