@@ -807,7 +807,7 @@ routes.post("/admin-update",async(req, res) => {
   }
 })
 
-routes.post("/admin-update",async(req, res) => {
+routes.post("/admin-delete",async(req, res) => {
   try{
       let adminData=await models.adminRegisterModel.findOne({_id:req.body.id}).exec();
       if(adminData){
