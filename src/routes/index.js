@@ -136,13 +136,18 @@ routes
 
   routes.post("/verified_user",(req,res)=>{
     try{  
-    let VerifiedCollection= models.userModel.findOneAndUpdate({address:{'$regex' : '^'+req.body.address+'$', "$options": "i"}},{
-        isVerified: req.body.isverified
-      })
-      VerifiedCollection.exec((err)=>{
-        if(err) throw err;
-        res.status(200).json({message:"Successfully Verified"})
-      })
+      if(!req.body.address || req.body.isverified){
+        res.status(500).json({message:"Parameters are wrong"})
+      }
+      else{
+        let VerifiedCollection= models.userModel.findOneAndUpdate({address:{'$regex' : '^'+req.body.address+'$', "$options": "i"}},{
+          isVerified: req.body.isverified
+        })
+        VerifiedCollection.exec((err)=>{
+          if(err) throw err;
+          res.status(200).json({message:"Successfully Verified"})
+        })
+      }
     } catch (error) {
       res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
