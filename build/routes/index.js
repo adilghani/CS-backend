@@ -204,21 +204,30 @@ routes.route("/profile").post(async (req, res) => {
 });
 routes.post("/verified_user", (req, res) => {
   try {
-    let VerifiedCollection = _models.default.userModel.findOneAndUpdate({
-      address: {
-        '$regex': '^' + req.body.address + '$',
-        "$options": "i"
-      }
-    }, {
-      isVerified: req.body.isverified
-    });
+    console.log(req.body.address);
+    console.log(req.body.isverified);
 
-    VerifiedCollection.exec(err => {
-      if (err) throw err;
-      res.status(200).json({
-        message: "Successfully Verified"
+    if (!req.body.address || req.body.isverified) {
+      res.status(500).json({
+        message: "Parameters are wrong"
       });
-    });
+    } else {
+      let VerifiedCollection = _models.default.userModel.findOneAndUpdate({
+        address: {
+          '$regex': '^' + req.body.address + '$',
+          "$options": "i"
+        }
+      }, {
+        isVerified: req.body.isverified
+      });
+
+      VerifiedCollection.exec(err => {
+        if (err) throw err;
+        res.status(200).json({
+          message: "Successfully Verified"
+        });
+      });
+    }
   } catch (error) {
     res.status(500).json({
       message: "Some thing went wrong",
@@ -256,7 +265,7 @@ routes.route("/collection").post(async (req, res) => {
         name: body.name
       }, {
         $push: {
-          'tokens': parseInt(body.tokens)
+          'tokens.tokenId': parseInt(body.tokens)
         }
       });
 
@@ -275,7 +284,9 @@ routes.route("/collection").post(async (req, res) => {
         background: body.background,
         description: body.description,
         externalUrl: body.externalUrl,
-        tokens: parseInt(body.tokens) || []
+        tokens: {
+          "tokenId": parseInt(body.tokens)
+        } || []
       });
       res.status(200).json("Successfully created!");
     }
@@ -325,7 +336,7 @@ routes.route("/collection").post(async (req, res) => {
         };
       }
 
-      if (!!body.tokensId) {
+      if (!!body.tokens) {
         data = { ...data,
           tokens: body.tokens
         };
@@ -951,6 +962,17 @@ routes.post("/update-notification-bar", async (req, res) => {
     });
   }
 });
+routes.get("/get-notification-bar", async (req, res) => {
+  try {
+    let noti = await _models.default.notificationmodel.findOne().lean().exec();
+    return res.status(200).json(noti);
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
 routes.post("/usersviews", (req, res) => {
   let viewedNft = [];
 
@@ -1084,16 +1106,101 @@ routes.post("/get-following", (req, res) => {
     }
   });
 });
-routes.post("/admin-register", (req, res) => {
-  if (req.body.account) {
-    let createAdmin = new _models.default.adminRegisterModel({
-      walletAddress: req.body.account
+routes.post("/admin-register", async (req, res) => {
+  try {
+    if (!req.body.walletAddress || !req.body.name || !req.body.email) {
+      return res.status(500).json("Parameters are wrong");
+    } else {
+      let adminData = await _models.default.adminRegisterModel.findOne({
+        walletAddress: {
+          '$regex': '^' + req.body.walletAddress + '$',
+          "$options": "i"
+        }
+      }).exec();
+
+      if (adminData) {
+        res.status(500).json("Already Admin");
+      } else {
+        let createAdmin = new _models.default.adminRegisterModel({
+          walletAddress: req.body.walletAddress,
+          name: req.body.name,
+          email: req.body.email
+        });
+        createAdmin.save(function () {
+          res.status(200).json("Admin registerd Succcesfully");
+        });
+      }
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
     });
-    createAdmin.save(function () {
-      res.send("Admin Stored Succcesfully");
+  }
+});
+routes.post("/admin-update", async (req, res) => {
+  try {
+    let adminData = await _models.default.adminRegisterModel.findOne({
+      walletAddress: {
+        '$regex': '^' + req.body.walletAddress + '$',
+        "$options": "i"
+      }
+    }).exec();
+
+    if (adminData) {
+      await _models.default.adminRegisterModel.findOneAndUpdate({
+        walletAddress: {
+          '$regex': '^' + req.body.walletAddress + '$',
+          "$options": "i"
+        }
+      }, req.body).exec();
+      res.status(200).json("Updated succesfully");
+    } else {
+      res.status(500).json("Wallet Address is necessary to update Admin");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
     });
-  } else {
-    res.status.send("address are empty");
+  }
+});
+routes.post("/admin-delete", async (req, res) => {
+  try {
+    let adminData = await _models.default.adminRegisterModel.findOne({
+      walletAddress: {
+        '$regex': '^' + req.body.walletAddress + '$',
+        "$options": "i"
+      }
+    }).exec();
+
+    if (adminData) {
+      await _models.default.adminRegisterModel.findOneAndDelete({
+        walletAddress: {
+          '$regex': '^' + req.body.walletAddress + '$',
+          "$options": "i"
+        }
+      }).exec();
+      res.status(200).json("Deleted succesfully");
+    } else {
+      res.status(500).json("Wallet Adddress is necessary to delete Admin");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
+routes.get("/admin-all", async (req, res) => {
+  try {
+    let adminData = await _models.default.adminRegisterModel.find().lean().exec();
+    res.status(200).json(adminData);
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
   }
 });
 routes.post("/admin-login", async (req, res) => {

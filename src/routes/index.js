@@ -136,7 +136,9 @@ routes
 
   routes.post("/verified_user",(req,res)=>{
     try{  
-      if(!req.body.address || req.body.isverified){
+      console.log(req.body.address)
+      console.log(req.body.isverified)
+      if(!req.body.address || !req.body.isverified == undefined){
         res.status(500).json({message:"Parameters are wrong"})
       }
       else{

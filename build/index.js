@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({
 app.use(_express.default.json());
 app.use((0, _cors.default)());
 app.use("/", routes);
-app.listen(process.env.PORT || 4000, () => {
+app.listen(process.env.PORT || 6000, () => {
   console.log(`Server is Ready on ${process.env.PORT || 4000} PORT`);
 
   _mongoose.default.connect('mongodb+srv://closedsea_user:UQVwYPgpy5ZEZKll@cluster0.voxu3.mongodb.net/closedsea?retryWrites=true&w=majority', {

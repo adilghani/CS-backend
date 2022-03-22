@@ -145,13 +145,22 @@ const adminRegiterSchema = new _mongoose.default.Schema({
   walletAddress: {
     type: String,
     required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true
   }
 }, {
   timestamps: true
 });
 const notificationSchema = new _mongoose.default.Schema({
   text: String,
-  color: String
+  color: String,
+  textColor: String
 }, {
   timestamps: true
 });
