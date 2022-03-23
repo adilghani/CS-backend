@@ -268,12 +268,9 @@ routes
         name: body.name,
       });
 
-      let tokenId = parseInt(body.tokenId);
-      let tokenAddress=body.tokenAddr;
-
       if (existingOne) {
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
-          $push: {'tokens': {tokenId,tokenAddress}}
+          $push: {'tokens': body.tokens}
         })
         tokenUpdate.exec((err)=>{
           if(err) throw err;
@@ -289,7 +286,7 @@ routes
           background: body.background,
           description: body.description,
           externalUrl: body.externalUrl,
-          tokens: {tokenId,tokenAddress} || [],
+          tokens: body.tokens || [],
         });
         res.status(200).json("Successfully created!");
       }
