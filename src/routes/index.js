@@ -270,7 +270,7 @@ routes
 
       if (existingOne) {
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
-          $push: {'tokens': body.tokens}
+          $push: {'tokens':{ $each: body.tokens}}
         })
         tokenUpdate.exec((err)=>{
           if(err) throw err;
