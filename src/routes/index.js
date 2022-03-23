@@ -880,6 +880,25 @@ routes.post("/nft-wrt-owner",(req, res) => {
   }
 })
 
+routes.post("/nfts-wrt-chainId",async (req, res) => {
+  try{
+    if( req.body.chainId.decimal == undefined || req.body.chainId.hexa==undefined){
+      res.status(500).json("Payload are wrong")
+    }
+    else{
+      let decimal=parseInt(req.body.chainId.decimal);
+      let hexa=String(req.body.chainId.hexa);
+      let Nft = models.nftControllerModel.find({chainId:{decimal:decimal,hexa:hexa}});
+      Nft.exec((err,data)=>{
+        if(err) throw err;
+        res.status(200).json(data)
+      })
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
+})
+
 routes.post("/nfts-wrt-tokenaddr",async (req, res) => {
   try{
     if(req.body.tokenIds == undefined || req.body.tokenAddr == undefined || req.body.tokenIds.length < 1 || req.body.tokenIds.length == undefined){
