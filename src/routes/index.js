@@ -714,13 +714,13 @@ routes.post("/users_follow",(req, res) => {
 
 routes.post("/get-followers",(req, res) => {
   let followers=[];
-    var user=models.userModel.findOne({address:req.body.userAddress});
+    var user=models.userModel.findOne({address:{'$regex' : '^'+req.body.userAddress+'$', "$options": "i"}});
     user.exec((err,data)=>{
       if(err) throw err;
       if(data!==undefined && data!==null){
         if(data.follower[0]!==undefined && data.follower[0]!==null){
          data.follower.map(function(address){
-          let userdata=models.userModel.findOne({address:address});
+          let userdata=models.userModel.findOne({address:{'$regex' : '^'+address+'$', "$options": "i"}});
           userdata.exec((err,fdata)=>{
             if (err) throw err
             if(fdata!==undefined && fdata!==null){
@@ -742,13 +742,13 @@ routes.post("/get-followers",(req, res) => {
 
 routes.post("/get-following",(req, res) => {
   let followings=[];
-    var user=models.userModel.findOne({address:req.body.userAddress});
+    var user=models.userModel.findOne({address:{'$regex' : '^'+req.body.userAddress+'$', "$options": "i"}});
     user.exec((err,data)=>{
       if(err) throw err;
       if(data!==undefined && data!==null){
         if(data.following[0]!==undefined && data.following[0]!==null){
           data.following.map(function(address){
-            let userdata=models.userModel.findOne({address:address});
+            let userdata=models.userModel.findOne({address:{'$regex' : '^'+address+'$', "$options": "i"}});
             userdata.exec((err,fdata)=>{
               if (err) throw err
               if(fdata!==undefined && fdata!==null){

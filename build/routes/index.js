@@ -204,9 +204,6 @@ routes.route("/profile").post(async (req, res) => {
 });
 routes.post("/verified_user", (req, res) => {
   try {
-    console.log(req.body.address);
-    console.log(req.body.isverified);
-
     if (!req.body.address || req.body.isverified == undefined) {
       res.status(500).json({
         message: "Parameters are wrong"
@@ -392,8 +389,6 @@ routes.route("/collection/v2").post(async (req, res) => {
     const existingOne = await _models.default.collectionModel.findOne({
       name: body.name
     });
-    let tokenId = parseInt(body.tokenId);
-    let tokenAddress = body.tokenAddr;
 
     if (existingOne) {
       let tokenUpdate = _models.default.collectionModel.findOneAndUpdate({
@@ -401,8 +396,7 @@ routes.route("/collection/v2").post(async (req, res) => {
       }, {
         $push: {
           'tokens': {
-            tokenId,
-            tokenAddress
+            $each: body.tokens
           }
         }
       });
@@ -422,10 +416,7 @@ routes.route("/collection/v2").post(async (req, res) => {
         background: body.background,
         description: body.description,
         externalUrl: body.externalUrl,
-        tokens: {
-          tokenId,
-          tokenAddress
-        } || []
+        tokens: body.tokens || []
       });
       res.status(200).json("Successfully created!");
     }
@@ -1030,7 +1021,10 @@ routes.post("/get-followers", (req, res) => {
   let followers = [];
 
   var user = _models.default.userModel.findOne({
-    address: req.body.userAddress
+    address: {
+      '$regex': '^' + req.body.userAddress + '$',
+      "$options": "i"
+    }
   });
 
   user.exec((err, data) => {
@@ -1040,7 +1034,10 @@ routes.post("/get-followers", (req, res) => {
       if (data.follower[0] !== undefined && data.follower[0] !== null) {
         data.follower.map(function (address) {
           let userdata = _models.default.userModel.findOne({
-            address: address
+            address: {
+              '$regex': '^' + address + '$',
+              "$options": "i"
+            }
           });
 
           userdata.exec((err, fdata) => {
@@ -1070,7 +1067,10 @@ routes.post("/get-following", (req, res) => {
   let followings = [];
 
   var user = _models.default.userModel.findOne({
-    address: req.body.userAddress
+    address: {
+      '$regex': '^' + req.body.userAddress + '$',
+      "$options": "i"
+    }
   });
 
   user.exec((err, data) => {
@@ -1080,7 +1080,10 @@ routes.post("/get-following", (req, res) => {
       if (data.following[0] !== undefined && data.following[0] !== null) {
         data.following.map(function (address) {
           let userdata = _models.default.userModel.findOne({
-            address: address
+            address: {
+              '$regex': '^' + address + '$',
+              "$options": "i"
+            }
           });
 
           userdata.exec((err, fdata) => {
@@ -1263,6 +1266,33 @@ routes.post("/nft-wrt-owner", (req, res) => {
     }).catch(err => res.status(500).json({
       message: error.toString()
     }));
+  }
+});
+routes.post("/nfts-wrt-chainId", async (req, res) => {
+  try {
+    if (req.body.chainId.decimal == undefined || req.body.chainId.hexa == undefined) {
+      res.status(500).json("Payload are wrong");
+    } else {
+      let decimal = parseInt(req.body.chainId.decimal);
+      let hexa = String(req.body.chainId.hexa);
+
+      let Nft = _models.default.nftControllerModel.find({
+        chainId: {
+          decimal: decimal,
+          hexa: hexa
+        }
+      });
+
+      Nft.exec((err, data) => {
+        if (err) throw err;
+        res.status(200).json(data);
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
   }
 });
 routes.post("/nfts-wrt-tokenaddr", async (req, res) => {
