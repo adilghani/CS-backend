@@ -969,39 +969,48 @@ routes.get("/nft-collector",(req, res) => {
 })
 
 routes.post("/nft-collector",(req, res) => {
-  let filterData=models.nftControllerModel.findOne({tokenId: req.body.tokenId , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
-  filterData.exec((err,data)=>{
-    if (err) throw err;
-    if(data!==null){
-      let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: req.body.tokenId,tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
-        price: req.body.price,
-        owner:req.body.ownerOf,
-        selectedCat:req.body.selectedCat,
-        isOnSell:req.body.isOnSell
-      })
-      updateNft.exec((err)=>{
-        if(err) throw err;
-        res.status(200).json({message:"Updated Success"})
+  try{
+    if(req.body.tokenId && req.body.tokenAddr){
+    let filterData=models.nftControllerModel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
+      filterData.exec((err,data)=>{
+        if (err) throw err;
+        if(data!==null){
+          let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: String(req.body.tokenId),tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
+            price: req.body.price,
+            owner:req.body.ownerOf,
+            selectedCat:req.body.selectedCat,
+            isOnSell:req.body.isOnSell
+          })
+          updateNft.exec((err)=>{
+            if(err) throw err;
+            res.status(200).json({message:"Updated Success"})
+          })
+        }
+        else{
+          let createNft=new models.nftControllerModel({
+            tokenAddr: req.body.tokenAddr,
+            tokenId: req.body.tokenId,
+            price: req.body.price,
+            owner:req.body.ownerOf,
+            metadata: req.body.metadata,
+            selectedCat:req.body.selectedCat,
+            tokenUri:req.body.tokenUri,
+            chainId:req.body.chainId,
+            relatedCollectionId:req.body.relatedCollectionId,
+            status:"pending"
+          })
+          createNft.save(function(){
+            res.status(200).json({message:"Success"})
+        });
+        }
       })
     }
     else{
-      let createNft=new models.nftControllerModel({
-        tokenAddr: req.body.tokenAddr,
-        tokenId: req.body.tokenId,
-        price: req.body.price,
-        owner:req.body.ownerOf,
-        metadata: req.body.metadata,
-        selectedCat:req.body.selectedCat,
-        tokenUri:req.body.tokenUri,
-        chainId:req.body.chainId,
-        relatedCollectionId:req.body.relatedCollectionId,
-        status:"pending"
-      })
-      createNft.save(function(){
-        res.status(200).json({message:"Success"})
-    });
+      res.status(500).json("Token Id or TokenAddress is not Defined");
     }
-})
+  } catch (error) {
+  res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
 })
 
 routes.post("/external-nft",(req, res) => {
