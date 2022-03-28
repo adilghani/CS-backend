@@ -1309,6 +1309,19 @@ routes.post("/nft-pagination",(req, res) => {
   })
 })
 
+routes.post("/collection-pagination",(req, res) => {
+  let limitedCollection=models.collectionModel.find({}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+  models.collectionModel.countDocuments({}, function(err, count) {
+    let totalPage=Math.ceil(count/req.body.size);
+    limitedCollection.exec((err,data)=>{
+      if(err) throw err;
+      if(data[0]!==undefined && data[0]!==null){
+        res.status(202).json({collection:data,totalPage:totalPage})
+      }
+    })
+  })
+})
+
 routes.get("/feature-nft",(req, res) => {
   var nftdata=models.nftControllerModel.find({featured: true});
   nftdata.exec()
