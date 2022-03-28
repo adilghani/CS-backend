@@ -478,6 +478,15 @@ routes.get("/collection-names", async (req, res) => {
   }
 });
 
+routes.get("/get-all=collections", async (req, res) => {
+  try {
+    const collections = await models.collectionModel.find().lean().exec();
+    res.status(200).json(collections);
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
+});
+
 routes.get("/my-collections", async (req, res) => {
   try {
     const owner = { '$regex' : '^'+req.query.owner+'$', "$options": "i" };
