@@ -478,7 +478,7 @@ routes.get("/collection-names", async (req, res) => {
   }
 });
 
-routes.get("/get-all=collections", async (req, res) => {
+routes.get("/get-all-collections", async (req, res) => {
   try {
     const collections = await models.collectionModel.find().lean().exec();
     res.status(200).json(collections);
