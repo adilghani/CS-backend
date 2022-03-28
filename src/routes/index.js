@@ -526,7 +526,6 @@ routes.get("/my-collections/v2", async (req, res) => {
   }
 });
 
-
 routes.put("/insert-token-to-collection", async (req, res) => {
   try {
     const { body } = req;
