@@ -62,7 +62,8 @@ const collectionSchema = new mongoose.Schema({
   tokens: {
     type: Array
   },
-  isVerified:{type:Boolean,default:false}
+  isVerified:{type:Boolean,default:false},
+  category:{type:String,default:"utlity"}
 },{timestamps: true});
 
 const viewAndLikeSchema = new mongoose.Schema({

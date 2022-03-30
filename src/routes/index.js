@@ -175,7 +175,8 @@ routes
       
       if (existingOne) {
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
-          $push: {'tokens.tokenId': parseInt(body.tokens)}
+          $push: {'tokens.tokenId': parseInt(body.tokens)},
+          category:body.category
         })
         tokenUpdate.exec((err)=>{
           if(err) throw err;
@@ -191,6 +192,7 @@ routes
           background: body.background,
           description: body.description,
           externalUrl: body.externalUrl,
+          category:body.category,
           tokens: {"tokenId":parseInt(body.tokens)} || [],
         });
         res.status(200).json("Successfully created!");
@@ -224,6 +226,9 @@ routes
         }
         if (!!body.tokens) {
           data = { ...data, tokens: body.tokens };
+        }
+        if (!!body.category) {
+          data = { ...data, category:body.category };
         }
         await models.collectionModel.updateOne({ _id: body._id }, data);
         res.status(200).json("Successfully updated!");
@@ -270,7 +275,8 @@ routes
 
       if (existingOne) {
         let tokenUpdate=models.collectionModel.findOneAndUpdate({name: body.name},{
-          $push: {'tokens':{ $each: body.tokens}}
+          $push: {'tokens':{ $each: body.tokens}},
+          category:body.category
         })
         tokenUpdate.exec((err)=>{
           if(err) throw err;
@@ -286,6 +292,7 @@ routes
           background: body.background,
           description: body.description,
           externalUrl: body.externalUrl,
+          category:body.category,
           tokens: body.tokens || [],
         });
         res.status(200).json("Successfully created!");
@@ -319,6 +326,9 @@ routes
         }
         if (!!body.tokens) {
           data = { ...data, tokens: body.tokens};
+        }
+        if (!!body.category) {
+          data = { ...data, category:body.category };
         }
         await models.collectionModel.updateOne({ _id: body._id }, data);
         res.status(200).json("Successfully updated!");

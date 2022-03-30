@@ -263,7 +263,8 @@ routes.route("/collection").post(async (req, res) => {
       }, {
         $push: {
           'tokens.tokenId': parseInt(body.tokens)
-        }
+        },
+        category: body.category
       });
 
       tokenUpdate.exec(err => {
@@ -281,6 +282,7 @@ routes.route("/collection").post(async (req, res) => {
         background: body.background,
         description: body.description,
         externalUrl: body.externalUrl,
+        category: body.category,
         tokens: {
           "tokenId": parseInt(body.tokens)
         } || []
@@ -336,6 +338,12 @@ routes.route("/collection").post(async (req, res) => {
       if (!!body.tokens) {
         data = { ...data,
           tokens: body.tokens
+        };
+      }
+
+      if (!!body.category) {
+        data = { ...data,
+          category: body.category
         };
       }
 
@@ -398,7 +406,8 @@ routes.route("/collection/v2").post(async (req, res) => {
           'tokens': {
             $each: body.tokens
           }
-        }
+        },
+        category: body.category
       });
 
       tokenUpdate.exec(err => {
@@ -416,6 +425,7 @@ routes.route("/collection/v2").post(async (req, res) => {
         background: body.background,
         description: body.description,
         externalUrl: body.externalUrl,
+        category: body.category,
         tokens: body.tokens || []
       });
       res.status(200).json("Successfully created!");
@@ -469,6 +479,12 @@ routes.route("/collection/v2").post(async (req, res) => {
       if (!!body.tokens) {
         data = { ...data,
           tokens: body.tokens
+        };
+      }
+
+      if (!!body.category) {
+        data = { ...data,
+          category: body.category
         };
       }
 
@@ -653,6 +669,17 @@ routes.post("/upload_file_to_s3", uploadImage, (req, res) => {
 routes.get("/collection-names", async (req, res) => {
   try {
     const collections = await _models.default.collectionModel.find({}).select("name -_id").exec();
+    res.status(200).json(collections);
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
+routes.get("/get-all-collections", async (req, res) => {
+  try {
+    const collections = await _models.default.collectionModel.find().lean().exec();
     res.status(200).json(collections);
   } catch (error) {
     res.status(500).json({
@@ -1437,7 +1464,7 @@ routes.post("/nft-collector", (req, res) => {
         }
       });
     } else {
-      res.status(500).json("Token Id Or TokenAddress is not Defined");
+      res.status(500).json("Token Id or TokenAddress is not Defined");
     }
   } catch (error) {
     res.status(500).json({
@@ -1922,6 +1949,23 @@ routes.post("/nft-pagination", (req, res) => {
       if (data[0] !== undefined && data[0] !== null) {
         res.status(202).json({
           nft: data,
+          totalPage: totalPage
+        });
+      }
+    });
+  });
+});
+routes.post("/collection-pagination", (req, res) => {
+  let limitedCollection = _models.default.collectionModel.find({}).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
+
+  _models.default.collectionModel.countDocuments({}, function (err, count) {
+    let totalPage = Math.ceil(count / req.body.size);
+    limitedCollection.exec((err, data) => {
+      if (err) throw err;
+
+      if (data[0] !== undefined && data[0] !== null) {
+        res.status(202).json({
+          collection: data,
           totalPage: totalPage
         });
       }

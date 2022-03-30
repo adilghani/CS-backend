@@ -78,6 +78,10 @@ const collectionSchema = new _mongoose.default.Schema({
   isVerified: {
     type: Boolean,
     default: false
+  },
+  category: {
+    type: String,
+    default: "utlity"
   }
 }, {
   timestamps: true
