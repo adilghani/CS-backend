@@ -1328,7 +1328,7 @@ routes.post("/nft-pagination",(req, res) => {
 })
 
 routes.post("/collection-pagination",(req, res) => {
-  let limitedCollection=models.collectionModel.find({}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+  let limitedCollection=models.collectionModel.find({category:req.body.category}).skip((req.body.page-1)*req.body.size).limit(req.body.size).lean();
   models.collectionModel.countDocuments({}, function(err, count) {
     let totalPage=Math.ceil(count/req.body.size);
     limitedCollection.exec((err,data)=>{
