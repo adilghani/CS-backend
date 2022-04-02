@@ -135,7 +135,8 @@ const adminRegiterSchema = new mongoose.Schema({
 const notificationSchema = new mongoose.Schema({
   text:String,
   color:String,
-  textColor:String
+  textColor:String,
+  show:Boolean
 },{timestamps: true});
 
 const uploadSliderSchema = new mongoose.Schema({
