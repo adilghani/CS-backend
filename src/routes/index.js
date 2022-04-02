@@ -588,7 +588,7 @@ routes
       const { body } = req;
       console.log({ body });
       const obj = await models.viewAndLikeModel.findOne({
-        tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" },
+        tokenAddr: body.tokenAddr,
         tokenId: body.tokenId,
       });
       console.log({ obj });
@@ -606,7 +606,7 @@ routes
             return res.status(200).json({message:"Already viewed",error:true});
           } else {
             await models.viewAndLikeModel.findOneAndUpdate(
-              { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
+              { tokenAddr: body.tokenAddr, tokenId: body.tokenId },
               { viewedAddresses: [...obj.viewedAddresses, body.address] },
               { new: true }
             );
@@ -625,14 +625,14 @@ routes
           //else if
           else {
             await models.viewAndLikeModel.findOneAndUpdate(
-              { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
+              { tokenAddr: body.tokenAddr, tokenId: body.tokenId },
               { likedAccounts: [...obj.likedAccounts, body.address] },
               { new: true }
             );
           }
         }
         const newUpdatedInfo = await models.viewAndLikeModel.findOneAndUpdate(
-          { tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" }, tokenId: body.tokenId },
+          { tokenAddr: body.tokenAddr, tokenId: body.tokenId },
           {
             views: obj.views + body.views,
             likes: obj.likes + body.likes,
@@ -642,7 +642,7 @@ routes
         res.status(200).json(newUpdatedInfo);
       } else {
         await models.viewAndLikeModel.create({
-          tokenAddr: { '$regex' : '^'+body.tokenAddr+'$', "$options": "i" },
+          tokenAddr: body.tokenAddr,
           tokenId: body.tokenId,
           views: body.views > 0 ? 1 : 0,
           likes: body.likes > 0 ? 1 : 0,
