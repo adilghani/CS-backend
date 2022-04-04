@@ -1284,6 +1284,7 @@ routes.post("/price-range-nft",(req, res) => {
 
 
 routes.post("/oldest-nft",(req, res) => {
+  try{
   let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).sort({$natural:1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
     models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
       let totalPage=Math.ceil(count/parseInt(req.body.size));  
@@ -1297,9 +1298,13 @@ routes.post("/oldest-nft",(req, res) => {
           }
       })
     })
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
 })
 
 routes.post("/newest-nft",(req, res) => {
+  try{
   let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).sort({$natural:-1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
     models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
       let totalPage=Math.ceil(count/parseInt(req.body.size));  
@@ -1313,6 +1318,9 @@ routes.post("/newest-nft",(req, res) => {
           }
       })
     })
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
 })
 
 routes.get("/count-nft",(req, res) => {
@@ -1333,6 +1341,7 @@ routes.post("/nft-pagination",(req, res) => {
 })
 
 routes.post("/collection-pagination",(req, res) => {
+  try{
   let limitedCollection=models.collectionModel.find({category:req.body.category}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
   models.collectionModel.countDocuments({category:req.body.category}, function(err, count) {
     let totalPage=Math.ceil(count/parseInt(req.body.size));
@@ -1341,6 +1350,9 @@ routes.post("/collection-pagination",(req, res) => {
       res.status(202).json({collection:data,totalPage:totalPage})
     })
   })
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
 })
 
 routes.get("/feature-nft",(req, res) => {
