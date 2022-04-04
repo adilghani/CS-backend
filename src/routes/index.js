@@ -1282,30 +1282,37 @@ routes.post("/price-range-nft",(req, res) => {
   })
 })
 
-routes.get("/oldest-nft",(req, res) => {
-  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).limit(1).sort({$natural:1})
-    filterData.exec(async(err,data)=>{
-      if (err) throw err;
-      if(data[0]==undefined || data[0]==null){
-        res.status(200).json({message:"No NFT found",errs:true});
-      }
-      else{
-        res.status(200).json({nft:data});
-      }
-  })
+
+routes.post("/oldest-nft",(req, res) => {
+  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).sort({$natural:1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
+    models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
+      let totalPage=Math.ceil(count/parseInt(req.body.size));  
+      filterData.exec(async(err,data)=>{
+          if (err) throw err;
+          if(data[0]==undefined || data[0]==null){
+            res.status(200).json({message:"No NFT found",errs:true});
+          }
+          else{
+            res.status(200).json({nft:data,totalPage:totalPage});
+          }
+      })
+    })
 })
 
-routes.get("/newest-nft",(req, res) => {
-  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).limit(1).sort({$natural:-1});
-    filterData.exec(async(err,data)=>{
-      if (err) throw err;
-      if(data[0]==undefined || data[0]==null){
-        res.status(200).json({message:"No NFT found",errs:true});
-      }
-      else{
-        res.status(200).json({nft:data});
-      }
-  })
+routes.post("/newest-nft",(req, res) => {
+  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).sort({$natural:-1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
+    models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
+      let totalPage=Math.ceil(count/parseInt(req.body.size));  
+      filterData.exec(async(err,data)=>{
+          if (err) throw err;
+          if(data[0]==undefined || data[0]==null){
+            res.status(200).json({message:"No NFT found",errs:true});
+          }
+          else{
+            res.status(200).json({nft:data,totalPage:totalPage});
+          }
+      })
+    })
 })
 
 routes.get("/count-nft",(req, res) => {
@@ -1315,27 +1322,23 @@ routes.get("/count-nft",(req, res) => {
 })
 
 routes.post("/nft-pagination",(req, res) => {
-  let limitedNft=models.nftControllerModel.find({}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+  let limitedNft=models.nftControllerModel.find({}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
   models.nftControllerModel.countDocuments({}, function(err, count) {
-    let totalPage=Math.ceil(count/req.body.size);
+    let totalPage=Math.ceil(count/parseInt(req.body.size));
     limitedNft.exec((err,data)=>{
       if(err) throw err;
-      if(data[0]!==undefined && data[0]!==null){
-        res.status(202).json({nft:data,totalPage:totalPage})
-      }
+      res.status(202).json({nft:data,totalPage:totalPage})
     })
   })
 })
 
 routes.post("/collection-pagination",(req, res) => {
-  let limitedCollection=models.collectionModel.find({category:req.body.category}).skip((req.body.page-1)*req.body.size).limit(req.body.size).lean();
-  models.collectionModel.countDocuments({}, function(err, count) {
-    let totalPage=Math.ceil(count/req.body.size);
+  let limitedCollection=models.collectionModel.find({category:req.body.category}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
+  models.collectionModel.countDocuments({category:req.body.category}, function(err, count) {
+    let totalPage=Math.ceil(count/parseInt(req.body.size));
     limitedCollection.exec((err,data)=>{
       if(err) throw err;
-      if(data[0]!==undefined && data[0]!==null){
-        res.status(202).json({collection:data,totalPage:totalPage})
-      }
+      res.status(202).json({collection:data,totalPage:totalPage})
     })
   })
 })

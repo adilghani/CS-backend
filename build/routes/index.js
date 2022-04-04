@@ -835,10 +835,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       body
     });
     const obj = await _models.default.viewAndLikeModel.findOne({
-      tokenAddr: {
-        '$regex': '^' + body.tokenAddr + '$',
-        "$options": "i"
-      },
+      tokenAddr: body.tokenAddr,
       tokenId: body.tokenId
     });
     console.log({
@@ -858,10 +855,7 @@ routes.route("/view-and-like").get(async (req, res) => {
           });
         } else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
-            tokenAddr: {
-              '$regex': '^' + body.tokenAddr + '$',
-              "$options": "i"
-            },
+            tokenAddr: body.tokenAddr,
             tokenId: body.tokenId
           }, {
             viewedAddresses: [...obj.viewedAddresses, body.address]
@@ -882,10 +876,7 @@ routes.route("/view-and-like").get(async (req, res) => {
         } //else if
         else {
           await _models.default.viewAndLikeModel.findOneAndUpdate({
-            tokenAddr: {
-              '$regex': '^' + body.tokenAddr + '$',
-              "$options": "i"
-            },
+            tokenAddr: body.tokenAddr,
             tokenId: body.tokenId
           }, {
             likedAccounts: [...obj.likedAccounts, body.address]
@@ -896,10 +887,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       }
 
       const newUpdatedInfo = await _models.default.viewAndLikeModel.findOneAndUpdate({
-        tokenAddr: {
-          '$regex': '^' + body.tokenAddr + '$',
-          "$options": "i"
-        },
+        tokenAddr: body.tokenAddr,
         tokenId: body.tokenId
       }, {
         views: obj.views + body.views,
@@ -912,10 +900,7 @@ routes.route("/view-and-like").get(async (req, res) => {
       var _body$address, _body$address2;
 
       await _models.default.viewAndLikeModel.create({
-        tokenAddr: {
-          '$regex': '^' + body.tokenAddr + '$',
-          "$options": "i"
-        },
+        tokenAddr: body.tokenAddr,
         tokenId: body.tokenId,
         views: body.views > 0 ? 1 : 0,
         likes: body.likes > 0 ? 1 : 0,
@@ -1887,50 +1872,64 @@ routes.post("/price-range-nft", (req, res) => {
     });
   });
 });
-routes.get("/oldest-nft", (req, res) => {
+routes.post("/oldest-nft", (req, res) => {
   let filterData = _models.default.nftControllerModel.find({
     isOnSell: true,
     status: "active"
-  }).limit(1).sort({
+  }).sort({
     $natural: 1
-  });
+  }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size));
 
-  filterData.exec(async (err, data) => {
-    if (err) throw err;
+  _models.default.nftControllerModel.countDocuments({
+    isOnSell: true,
+    status: "active"
+  }, function (err, count) {
+    let totalPage = Math.ceil(count / parseInt(req.body.size));
+    filterData.exec(async (err, data) => {
+      if (err) throw err;
 
-    if (data[0] == undefined || data[0] == null) {
-      res.status(200).json({
-        message: "No NFT found",
-        errs: true
-      });
-    } else {
-      res.status(200).json({
-        nft: data
-      });
-    }
+      if (data[0] == undefined || data[0] == null) {
+        res.status(200).json({
+          message: "No NFT found",
+          errs: true
+        });
+      } else {
+        res.status(200).json({
+          nft: data,
+          totalPage: totalPage
+        });
+      }
+    });
   });
 });
-routes.get("/newest-nft", (req, res) => {
+routes.post("/newest-nft", (req, res) => {
   let filterData = _models.default.nftControllerModel.find({
     isOnSell: true,
     status: "active"
-  }).limit(1).sort({
+  }).sort({
     $natural: -1
-  });
+  }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size));
 
-  filterData.exec(async (err, data) => {
-    if (err) throw err;
+  _models.default.nftControllerModel.countDocuments({
+    isOnSell: true,
+    status: "active"
+  }, function (err, count) {
+    let totalPage = Math.ceil(count / parseInt(req.body.size));
+    filterData.exec(async (err, data) => {
+      if (err) throw err;
 
-    if (data[0] == undefined || data[0] == null) {
-      res.status(200).json({
-        message: "No NFT found",
-        errs: true
-      });
-    } else {
-      res.status(200).json({
-        nft: data
-      });
-    }
+      if (data[0] == undefined || data[0] == null) {
+        res.status(200).json({
+          message: "No NFT found",
+          errs: true
+        });
+      } else {
+        res.status(200).json({
+          nft: data,
+          totalPage: totalPage
+        });
+      }
+    });
   });
 });
 routes.get("/count-nft", (req, res) => {
@@ -1939,36 +1938,34 @@ routes.get("/count-nft", (req, res) => {
   });
 });
 routes.post("/nft-pagination", (req, res) => {
-  let limitedNft = _models.default.nftControllerModel.find({}).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
+  let limitedNft = _models.default.nftControllerModel.find({}).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size));
 
   _models.default.nftControllerModel.countDocuments({}, function (err, count) {
-    let totalPage = Math.ceil(count / req.body.size);
+    let totalPage = Math.ceil(count / parseInt(req.body.size));
     limitedNft.exec((err, data) => {
       if (err) throw err;
-
-      if (data[0] !== undefined && data[0] !== null) {
-        res.status(202).json({
-          nft: data,
-          totalPage: totalPage
-        });
-      }
+      res.status(202).json({
+        nft: data,
+        totalPage: totalPage
+      });
     });
   });
 });
 routes.post("/collection-pagination", (req, res) => {
-  let limitedCollection = _models.default.collectionModel.find({}).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
+  let limitedCollection = _models.default.collectionModel.find({
+    category: req.body.category
+  }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
 
-  _models.default.collectionModel.countDocuments({}, function (err, count) {
-    let totalPage = Math.ceil(count / req.body.size);
+  _models.default.collectionModel.countDocuments({
+    category: req.body.category
+  }, function (err, count) {
+    let totalPage = Math.ceil(count / parseInt(req.body.size));
     limitedCollection.exec((err, data) => {
       if (err) throw err;
-
-      if (data[0] !== undefined && data[0] !== null) {
-        res.status(202).json({
-          collection: data,
-          totalPage: totalPage
-        });
-      }
+      res.status(202).json({
+        collection: data,
+        totalPage: totalPage
+      });
     });
   });
 });

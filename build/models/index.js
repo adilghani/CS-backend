@@ -164,7 +164,8 @@ const adminRegiterSchema = new _mongoose.default.Schema({
 const notificationSchema = new _mongoose.default.Schema({
   text: String,
   color: String,
-  textColor: String
+  textColor: String,
+  show: Boolean
 }, {
   timestamps: true
 });
