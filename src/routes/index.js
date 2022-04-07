@@ -1144,10 +1144,10 @@ routes.post("/insert-multiple-nft",async (req, res) => {
 
 routes.post("/search-nft",(req, res) => {
   if (req.body.name !==undefined && req.body.name !== null && req.body.name !== false){
-    let limitedNft=models.nftControllerModel.find({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'}}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
-      models.nftControllerModel.countDocuments({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'}}, function(err, count) {
+    let decimal=parseInt(req.body.chainId);
+    let limitedNft=models.nftControllerModel.find({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'},"chainId.decimal":decimal}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+      models.nftControllerModel.countDocuments({"metadata.name": { $regex:'.*' + req.body.name + ".*", $options: 'i'},"chainId.decimal":decimal}, function(err, count) {
         let totalPage=Math.ceil(count/req.body.size);
-    
         limitedNft.exec((err,data)=>{
           if(err) throw err;
           if(data[0]!==undefined && data[0]!==null){
