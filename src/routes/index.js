@@ -1220,7 +1220,10 @@ routes.post("/most-liked-nft",async (req, res) => {
         ]
       }}
   ]).exec();
-  let count=filterData[0].Total[0].count;
+  let count=0;
+  if(filterData){
+    count=filterData[0].Total[0].count;
+  }
   let totalPage=Math.ceil(count/req.body.size);
   res.status(200).json({mostLikedNft:filterData[0].data,totalPage:totalPage});
 })
@@ -1261,7 +1264,10 @@ routes.post("/least-liked-nft",async (req, res) => {
         ]
       }}
   ]).exec();
-  let count=filterData[0].Total[0].count;
+  let count=0;
+  if(filterData){
+    count=filterData[0].Total[0].count;
+  }
   let totalPage=Math.ceil(count/req.body.size);
   res.status(200).json({leastLikedNft:filterData[0].data,totalPage:totalPage});
 })
