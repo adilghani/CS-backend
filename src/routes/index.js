@@ -1267,8 +1267,9 @@ routes.post("/least-liked-nft",async (req, res) => {
 })
 
 routes.post("/price-range-nft",(req, res) => {
-  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active",price:{$gt:req.body.startPrice,$lt:req.body.endPrice}}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
-  models.nftControllerModel.countDocuments({isOnSell:true,status:"active",price:{$gt:req.body.startPrice,$lt:req.body.endPrice}}, function(err, count) {
+  let decimal=parseInt(req.body.chainId);
+  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active","chainId.decimal":decimal,price:{$gt:req.body.startPrice,$lt:req.body.endPrice}}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+  models.nftControllerModel.countDocuments({isOnSell:true,status:"active","chainId.decimal":decimal,price:{$gt:req.body.startPrice,$lt:req.body.endPrice}}, function(err, count) {
     let totalPage=Math.ceil(count/req.body.size);  
     filterData.exec(async(err,data)=>{
       if (err) throw err;
