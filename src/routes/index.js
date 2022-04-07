@@ -1282,7 +1282,6 @@ routes.post("/price-range-nft",(req, res) => {
   })
 })
 
-
 routes.post("/oldest-nft",(req, res) => {
   try{
   let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).sort({$natural:1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
@@ -1425,8 +1424,9 @@ routes.post("/nft-category-vise",(req, res) => {
       res.status(200).json({message:"Data is not defined"})
     }
     else if(req.body.category=="All NFTs"){
-        let limitedNft=models.nftControllerModel.find({isOnSell:true,status:"active"}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
-        models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
+      let decimal=parseInt(req.body.chainId);
+        let limitedNft=models.nftControllerModel.find({isOnSell:true,status:"active","chainId.decimal":decimal}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+        models.nftControllerModel.countDocuments({isOnSell:true,status:"active","chainId.decimal":decimal}, function(err, count) {
         let totalPage=Math.ceil(count/req.body.size);
         limitedNft.exec((err,data)=>{
           if(err) throw err;
@@ -1440,8 +1440,9 @@ routes.post("/nft-category-vise",(req, res) => {
       })
     }
     else{
-        let limitedNft=models.nftControllerModel.find({selectedCat:req.body.category,isOnSell:true,status:"active"}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
-        models.nftControllerModel.countDocuments({selectedCat:req.body.category,isOnSell:true,status:"active"}, function(err, count) {
+      let decimal=parseInt(req.body.chainId);
+        let limitedNft=models.nftControllerModel.find({selectedCat:req.body.category,isOnSell:true,status:"active","chainId.decimal":decimal}).skip((req.body.page-1)*req.body.size).limit(req.body.size);
+        models.nftControllerModel.countDocuments({selectedCat:req.body.category,isOnSell:true,status:"active","chainId.decimal":decimal}, function(err, count) {
           if (err) throw err;
           if(count == undefined || count == null || count == false || count == 0){
             res.status(200).json({message:"No NFT found for this Category"})
