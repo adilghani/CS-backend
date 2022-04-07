@@ -1187,9 +1187,9 @@ routes.post("/update-nft-status",auth,(req, res) => {
 routes.post("/most-liked-nft",async (req, res) => {
   let limit=parseInt(req.body.size);
   let page=parseInt(req.body.page);
-  
+  let decimal=parseInt(req.body.chainId);
   let filterData=await models.nftControllerModel.aggregate([
-    {$match : {isOnSell:true,status:"active"}},
+    {$match : {isOnSell:true,status:"active","chainId.decimal":decimal}},
     {$lookup: {
       from: "viewandlikes", // collection to join
       let: {tokenAddr: "$tokenAddr", tokenId: "$tokenId"},
@@ -1228,9 +1228,9 @@ routes.post("/most-liked-nft",async (req, res) => {
 routes.post("/least-liked-nft",async (req, res) => {
   let limit=parseInt(req.body.size);
   let page=parseInt(req.body.page);
-
+  let decimal=parseInt(req.body.chainId);
   let filterData=await models.nftControllerModel.aggregate([
-    {$match : {isOnSell:true,status:"active"}},
+    {$match : {isOnSell:true,status:"active","chainId.decimal":decimal}},
     {$lookup: {
       from: "viewandlikes", // collection to join
       let: {tokenAddr: "$tokenAddr", tokenId: "$tokenId"},
