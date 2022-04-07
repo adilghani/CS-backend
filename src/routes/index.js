@@ -1291,8 +1291,9 @@ routes.post("/price-range-nft",(req, res) => {
 
 routes.post("/oldest-nft",(req, res) => {
   try{
-  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).sort({$natural:1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
-    models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
+    let decimal=parseInt(req.body.chainId);
+    let filterData=models.nftControllerModel.find({isOnSell:true,status:"active","chainId.decimal":decimal}).sort({$natural:1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
+    models.nftControllerModel.countDocuments({isOnSell:true,status:"active","chainId.decimal":decimal}, function(err, count) {
       let totalPage=Math.ceil(count/parseInt(req.body.size));  
       filterData.exec(async(err,data)=>{
           if (err) throw err;
@@ -1311,8 +1312,9 @@ routes.post("/oldest-nft",(req, res) => {
 
 routes.post("/newest-nft",(req, res) => {
   try{
-  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active"}).sort({$natural:-1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
-    models.nftControllerModel.countDocuments({isOnSell:true,status:"active"}, function(err, count) {
+  let decimal=parseInt(req.body.chainId);
+  let filterData=models.nftControllerModel.find({isOnSell:true,status:"active","chainId.decimal":decimal}).sort({$natural:-1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size));
+    models.nftControllerModel.countDocuments({isOnSell:true,status:"active","chainId.decimal":decimal}, function(err, count) {
       let totalPage=Math.ceil(count/parseInt(req.body.size));  
       filterData.exec(async(err,data)=>{
           if (err) throw err;
