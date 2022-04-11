@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
   
   follower:Array,
   following:Array,
+  auction:Boolean,
   isVerified:{type:Boolean,default:false}
 },{timestamps: true});
 

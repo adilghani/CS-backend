@@ -134,7 +134,7 @@ routes
     }
   });
 
-  routes.post("/verified_user",(req,res)=>{
+routes.post("/verified_user",(req,res)=>{
     try{ 
       if(!req.body.address || req.body.isverified == undefined){
         res.status(500).json({message:"Parameters are wrong"})
@@ -148,6 +148,37 @@ routes
           res.status(200).json({message:"Successfully Verified"})
         })
       }
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
+  })
+  
+routes.post("/auction_user",(req,res)=>{
+    try{ 
+      if(!req.body.address || req.body.auction == undefined){
+        res.status(500).json({message:"Parameters are wrong"})
+      }
+      else{
+        let auctionUser= models.userModel.findOneAndUpdate({address:{'$regex' : '^'+req.body.address+'$', "$options": "i"}},{
+          auction:req.body.auction
+        })
+        auctionUser.exec((err)=>{
+          if(err) throw err;
+          res.status(200).json({message:"Success"})
+        })
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
+  })
+
+routes.post("/search_user",(req,res)=>{
+    try{ 
+        let User= models.userModel.find({$or:[{address:{'$regex' : '^'+req.body.user+'$', "$options": "i"}},{userName:{'$regex' : req.body.user, "$options": "i"}}]})
+        User.exec((err,data)=>{
+          if(err) throw err;
+          res.status(200).json(data)
+        })
     } catch (error) {
       res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }

@@ -232,6 +232,63 @@ routes.post("/verified_user", (req, res) => {
     });
   }
 });
+routes.post("/auction_user", (req, res) => {
+  try {
+    if (!req.body.address || req.body.auction == undefined) {
+      res.status(500).json({
+        message: "Parameters are wrong"
+      });
+    } else {
+      let auctionUser = _models.default.userModel.findOneAndUpdate({
+        address: {
+          '$regex': '^' + req.body.address + '$',
+          "$options": "i"
+        }
+      }, {
+        auction: req.body.auction
+      });
+
+      auctionUser.exec(err => {
+        if (err) throw err;
+        res.status(200).json({
+          message: "Success"
+        });
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
+routes.post("/search_user", (req, res) => {
+  try {
+    let User = _models.default.userModel.find({
+      $or: [{
+        address: {
+          '$regex': '^' + req.body.user + '$',
+          "$options": "i"
+        }
+      }, {
+        userName: {
+          '$regex': req.body.user,
+          "$options": "i"
+        }
+      }]
+    });
+
+    User.exec((err, data) => {
+      if (err) throw err;
+      res.status(200).json(data);
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
 routes.get("/get-all-users", (req, res) => {
   try {
     let user = _models.default.userModel.find();
@@ -1636,18 +1693,22 @@ routes.post("/insert-multiple-nft", async (req, res) => {
 });
 routes.post("/search-nft", (req, res) => {
   if (req.body.name !== undefined && req.body.name !== null && req.body.name !== false) {
+    let decimal = parseInt(req.body.chainId);
+
     let limitedNft = _models.default.nftControllerModel.find({
       "metadata.name": {
         $regex: '.*' + req.body.name + ".*",
         $options: 'i'
-      }
+      },
+      "chainId.decimal": decimal
     }).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
 
     _models.default.nftControllerModel.countDocuments({
       "metadata.name": {
         $regex: '.*' + req.body.name + ".*",
         $options: 'i'
-      }
+      },
+      "chainId.decimal": decimal
     }, function (err, count) {
       let totalPage = Math.ceil(count / req.body.size);
       limitedNft.exec((err, data) => {
@@ -1710,10 +1771,12 @@ routes.post("/update-nft-status", auth, (req, res) => {
 routes.post("/most-liked-nft", async (req, res) => {
   let limit = parseInt(req.body.size);
   let page = parseInt(req.body.page);
+  let decimal = parseInt(req.body.chainId);
   let filterData = await _models.default.nftControllerModel.aggregate([{
     $match: {
       isOnSell: true,
-      status: "active"
+      status: "active",
+      "chainId.decimal": decimal
     }
   }, {
     $lookup: {
@@ -1764,7 +1827,12 @@ routes.post("/most-liked-nft", async (req, res) => {
       }]
     }
   }]).exec();
-  let count = filterData[0].Total[0].count;
+  let count = 0;
+
+  if (filterData) {
+    count = filterData[0].Total[0].count;
+  }
+
   let totalPage = Math.ceil(count / req.body.size);
   res.status(200).json({
     mostLikedNft: filterData[0].data,
@@ -1774,10 +1842,12 @@ routes.post("/most-liked-nft", async (req, res) => {
 routes.post("/least-liked-nft", async (req, res) => {
   let limit = parseInt(req.body.size);
   let page = parseInt(req.body.page);
+  let decimal = parseInt(req.body.chainId);
   let filterData = await _models.default.nftControllerModel.aggregate([{
     $match: {
       isOnSell: true,
-      status: "active"
+      status: "active",
+      "chainId.decimal": decimal
     }
   }, {
     $lookup: {
@@ -1828,7 +1898,12 @@ routes.post("/least-liked-nft", async (req, res) => {
       }]
     }
   }]).exec();
-  let count = filterData[0].Total[0].count;
+  let count = 0;
+
+  if (filterData) {
+    count = filterData[0].Total[0].count;
+  }
+
   let totalPage = Math.ceil(count / req.body.size);
   res.status(200).json({
     leastLikedNft: filterData[0].data,
@@ -1836,9 +1911,12 @@ routes.post("/least-liked-nft", async (req, res) => {
   });
 });
 routes.post("/price-range-nft", (req, res) => {
+  let decimal = parseInt(req.body.chainId);
+
   let filterData = _models.default.nftControllerModel.find({
     isOnSell: true,
     status: "active",
+    "chainId.decimal": decimal,
     price: {
       $gt: req.body.startPrice,
       $lt: req.body.endPrice
@@ -1848,6 +1926,7 @@ routes.post("/price-range-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({
     isOnSell: true,
     status: "active",
+    "chainId.decimal": decimal,
     price: {
       $gt: req.body.startPrice,
       $lt: req.body.endPrice
@@ -1873,64 +1952,86 @@ routes.post("/price-range-nft", (req, res) => {
   });
 });
 routes.post("/oldest-nft", (req, res) => {
-  let filterData = _models.default.nftControllerModel.find({
-    isOnSell: true,
-    status: "active"
-  }).sort({
-    $natural: 1
-  }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size));
+  try {
+    let decimal = parseInt(req.body.chainId);
 
-  _models.default.nftControllerModel.countDocuments({
-    isOnSell: true,
-    status: "active"
-  }, function (err, count) {
-    let totalPage = Math.ceil(count / parseInt(req.body.size));
-    filterData.exec(async (err, data) => {
-      if (err) throw err;
+    let filterData = _models.default.nftControllerModel.find({
+      isOnSell: true,
+      status: "active",
+      "chainId.decimal": decimal
+    }).sort({
+      $natural: 1
+    }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size));
 
-      if (data[0] == undefined || data[0] == null) {
-        res.status(200).json({
-          message: "No NFT found",
-          errs: true
-        });
-      } else {
-        res.status(200).json({
-          nft: data,
-          totalPage: totalPage
-        });
-      }
+    _models.default.nftControllerModel.countDocuments({
+      isOnSell: true,
+      status: "active",
+      "chainId.decimal": decimal
+    }, function (err, count) {
+      let totalPage = Math.ceil(count / parseInt(req.body.size));
+      filterData.exec(async (err, data) => {
+        if (err) throw err;
+
+        if (data[0] == undefined || data[0] == null) {
+          res.status(200).json({
+            message: "No NFT found",
+            errs: true
+          });
+        } else {
+          res.status(200).json({
+            nft: data,
+            totalPage: totalPage
+          });
+        }
+      });
     });
-  });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.post("/newest-nft", (req, res) => {
-  let filterData = _models.default.nftControllerModel.find({
-    isOnSell: true,
-    status: "active"
-  }).sort({
-    $natural: -1
-  }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size));
+  try {
+    let decimal = parseInt(req.body.chainId);
 
-  _models.default.nftControllerModel.countDocuments({
-    isOnSell: true,
-    status: "active"
-  }, function (err, count) {
-    let totalPage = Math.ceil(count / parseInt(req.body.size));
-    filterData.exec(async (err, data) => {
-      if (err) throw err;
+    let filterData = _models.default.nftControllerModel.find({
+      isOnSell: true,
+      status: "active",
+      "chainId.decimal": decimal
+    }).sort({
+      $natural: -1
+    }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size));
 
-      if (data[0] == undefined || data[0] == null) {
-        res.status(200).json({
-          message: "No NFT found",
-          errs: true
-        });
-      } else {
-        res.status(200).json({
-          nft: data,
-          totalPage: totalPage
-        });
-      }
+    _models.default.nftControllerModel.countDocuments({
+      isOnSell: true,
+      status: "active",
+      "chainId.decimal": decimal
+    }, function (err, count) {
+      let totalPage = Math.ceil(count / parseInt(req.body.size));
+      filterData.exec(async (err, data) => {
+        if (err) throw err;
+
+        if (data[0] == undefined || data[0] == null) {
+          res.status(200).json({
+            message: "No NFT found",
+            errs: true
+          });
+        } else {
+          res.status(200).json({
+            nft: data,
+            totalPage: totalPage
+          });
+        }
+      });
     });
-  });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.get("/count-nft", (req, res) => {
   _models.default.nftControllerModel.countDocuments({}, function (err, count) {
@@ -1952,22 +2053,29 @@ routes.post("/nft-pagination", (req, res) => {
   });
 });
 routes.post("/collection-pagination", (req, res) => {
-  let limitedCollection = _models.default.collectionModel.find({
-    category: req.body.category
-  }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
+  try {
+    let limitedCollection = _models.default.collectionModel.find({
+      category: req.body.category
+    }).skip((parseInt(req.body.page) - 1) * parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
 
-  _models.default.collectionModel.countDocuments({
-    category: req.body.category
-  }, function (err, count) {
-    let totalPage = Math.ceil(count / parseInt(req.body.size));
-    limitedCollection.exec((err, data) => {
-      if (err) throw err;
-      res.status(202).json({
-        collection: data,
-        totalPage: totalPage
+    _models.default.collectionModel.countDocuments({
+      category: req.body.category
+    }, function (err, count) {
+      let totalPage = Math.ceil(count / parseInt(req.body.size));
+      limitedCollection.exec((err, data) => {
+        if (err) throw err;
+        res.status(202).json({
+          collection: data,
+          totalPage: totalPage
+        });
       });
     });
-  });
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.get("/feature-nft", (req, res) => {
   var nftdata = _models.default.nftControllerModel.find({
@@ -2066,14 +2174,18 @@ routes.post("/nft-category-vise", (req, res) => {
         message: "Data is not defined"
       });
     } else if (req.body.category == "All NFTs") {
+      let decimal = parseInt(req.body.chainId);
+
       let limitedNft = _models.default.nftControllerModel.find({
         isOnSell: true,
-        status: "active"
+        status: "active",
+        "chainId.decimal": decimal
       }).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
 
       _models.default.nftControllerModel.countDocuments({
         isOnSell: true,
-        status: "active"
+        status: "active",
+        "chainId.decimal": decimal
       }, function (err, count) {
         let totalPage = Math.ceil(count / req.body.size);
         limitedNft.exec((err, data) => {
@@ -2092,16 +2204,20 @@ routes.post("/nft-category-vise", (req, res) => {
         });
       });
     } else {
+      let decimal = parseInt(req.body.chainId);
+
       let limitedNft = _models.default.nftControllerModel.find({
         selectedCat: req.body.category,
         isOnSell: true,
-        status: "active"
+        status: "active",
+        "chainId.decimal": decimal
       }).skip((req.body.page - 1) * req.body.size).limit(req.body.size);
 
       _models.default.nftControllerModel.countDocuments({
         selectedCat: req.body.category,
         isOnSell: true,
-        status: "active"
+        status: "active",
+        "chainId.decimal": decimal
       }, function (err, count) {
         if (err) throw err;
 

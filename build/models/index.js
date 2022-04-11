@@ -41,6 +41,7 @@ const userSchema = new _mongoose.default.Schema({
   },
   follower: Array,
   following: Array,
+  auction: Boolean,
   isVerified: {
     type: Boolean,
     default: false
