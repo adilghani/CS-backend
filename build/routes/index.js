@@ -109,9 +109,7 @@ async function auth(req, res, next) {
 
 ;
 routes.get("/", (req, res) => {
-  res.status(200).json({
-    message: "Connected!"
-  });
+  res.send("Connected!");
 });
 routes.route("/profile").post(async (req, res) => {
   try {
