@@ -75,7 +75,7 @@ async function auth(req, res, next) {
 };
 
 routes.get("/", (req, res) => {
-  res.cookie('closedsea', "RUNNING", { path: '/',secure: true,sameSite: 'none'});
+  res.cookie('closedsea', "RUNNING", { path: '/',domain: '.herokuapp.com',sameSite:"none",expire: 43200000 + Date.now() });
   res.status(200).send({ message: "Connected!" });
 });
 
