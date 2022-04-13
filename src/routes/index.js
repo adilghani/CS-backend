@@ -75,7 +75,7 @@ async function auth(req, res, next) {
 };
 
 routes.get("/", (req, res) => {
-  res.cookie('closedsea', "RUNNING", { path: '/',secure: true,httpOnly: true,expire: 43200000 + Date.now() });
+  res.cookie('closedsea', "RUNNING", { path: '/',secure: true,sameSite: 'none'});
   res.status(200).send({ message: "Connected!" });
 });
 
