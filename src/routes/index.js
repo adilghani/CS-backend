@@ -75,8 +75,7 @@ async function auth(req, res, next) {
 };
 
 routes.get("/", (req, res) => {
-  res.cookie('closedsea', "RUNNING", { path: '/',domain: '.herokuapp.com',sameSite:"none",expire: 43200000 + Date.now() });
-  res.status(200).send({ message: "Connected!" });
+  res.status(200).json({ message: "ClosedSea Backend Service" });
 });
 
 routes
@@ -529,6 +528,69 @@ routes.get("/get-all-collections", async (req, res) => {
   }
 });
 
+routes.post("/get-verified-collection",(req, res) => {
+  try{
+    let decimal=parseInt(req.body.chainId);
+    let filterData=models.collectionModel.find({isVerified:true}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
+    models.collectionModel.countDocuments({isVerified:true}, function(err, count) {
+      let totalPage=Math.ceil(count/parseInt(req.body.size));  
+      filterData.exec(async(err,data)=>{
+          if (err) throw err;
+          if(data[0]==undefined || data[0]==null){
+            res.status(200).json({message:"No Collection found",errs:true});
+          }
+          else{
+            res.status(200).json({nft:data,totalPage:totalPage});
+          }
+      })
+    })
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
+routes.post("/oldest-collection",(req, res) => {
+  try{
+    let decimal=parseInt(req.body.chainId);
+    let filterData=models.collectionModel.find().sort({$natural:1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
+    models.collectionModel.countDocuments( function(err, count) {
+      let totalPage=Math.ceil(count/parseInt(req.body.size));  
+      filterData.exec(async(err,data)=>{
+          if (err) throw err;
+          if(data[0]==undefined || data[0]==null){
+            res.status(200).json({message:"No Collection found",errs:true});
+          }
+          else{
+            res.status(200).json({nft:data,totalPage:totalPage});
+          }
+      })
+    })
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
+routes.post("/newest-collection",(req, res) => {
+  try{
+  let decimal=parseInt(req.body.chainId);
+  let filterData=models.collectionModel.find().sort({$natural:-1}).skip((parseInt(req.body.page)-1)*parseInt(req.body.size)).limit(parseInt(req.body.size)).lean();
+    models.collectionModel.countDocuments(function(err, count) {
+      let totalPage=Math.ceil(count/parseInt(req.body.size));  
+      filterData.exec(async(err,data)=>{
+          if (err) throw err;
+          if(data[0]==undefined || data[0]==null){
+            res.status(200).json({message:"No Collection found",errs:true});
+          }
+          else{
+            res.status(200).json({nft:data,totalPage:totalPage});
+          }
+      })
+    })
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
 routes.get("/my-collections", async (req, res) => {
   try {
     const owner = { '$regex' : '^'+req.query.owner+'$', "$options": "i" };
@@ -729,7 +791,6 @@ routes.get("/get-notification-bar",async(req, res) => {
       res.status(500).json({ message: "Some thing went wrong" , error:error.message});
   }
 })
-
 
 routes.post("/usersviews",(req, res) => {
   let viewedNft =[];
