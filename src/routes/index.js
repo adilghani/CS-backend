@@ -74,7 +74,7 @@ async function auth(req, res, next) {
   }
 };
 
-routes.get("/", (req, res) => {
+routes.get("/",apiAuth.userAuth ,(req, res) => {
   res.status(200).json({ message: "ClosedSea Backend Service" });
 });
 
