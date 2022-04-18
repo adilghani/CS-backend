@@ -1123,7 +1123,7 @@ routes.post("/update-notification-bar", async (req, res) => {
     });
   }
 });
-routes.get("/get-notification-bar", async (req, res) => {
+routes.get("/get-notification-bar", apiAuth.userAuth, async (req, res) => {
   try {
     let noti = await _models.default.notificationmodel.findOne().lean().exec();
     return res.status(200).json(noti);

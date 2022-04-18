@@ -21,7 +21,7 @@ const s3 = new AWS.S3({
   secretAccessKey: "IANU/RxXNY3cnNtdW1nWCCN2oqg3Xwi7KVjyAI8Y"
 });
 
-// routes.use(apiAuth.userAuth)
+routes.use(apiAuth.userAuth)
 
 async function auth(req, res, next) {
   var authHeader = req.header('authorization');
@@ -74,7 +74,7 @@ async function auth(req, res, next) {
   }
 };
 
-routes.get("/",apiAuth.userAuth ,(req, res) => {
+routes.get("/",(req, res) => {
   res.status(200).json({ message: "ClosedSea Backend Service" });
 });
 
