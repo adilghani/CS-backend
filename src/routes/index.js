@@ -1130,7 +1130,7 @@ routes.post("/external-nft",(req, res) => {
     if(parseInt(req.body.chainId)==56 || String(req.body.chainId)=="0x38"){
       query={
         owner:req.body.owner,
-        chainId:{decimal:56,hexa:"0x38"},
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
         $and:[
           {tokenAddr: {$ne:"0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0"}},
           {tokenAddr: {$ne:"0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43"}},
@@ -1144,9 +1144,9 @@ routes.post("/external-nft",(req, res) => {
     else if(parseInt(req.body.chainId)==97 || String(req.body.chainId)=="0x61"){
       query={
         owner:req.body.owner,
-        chainId:{decimal:97,hexa:"0x61"},
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
         $and:[
-          // {tokenAddr: {$ne:"0x69536bdf4B18499181EB386B0E4019a28C4Fb096"}},
+          {tokenAddr: {$ne:"0x69536bdf4B18499181EB386B0E4019a28C4Fb096"}},
           {tokenAddr: {$ne:"0xA4fb840986B10aC44aA893793cfe755c81c3740D"}},
           {tokenAddr: {$ne:"0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D"}},
           {tokenAddr: {$ne:"0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"}},
@@ -1158,7 +1158,7 @@ routes.post("/external-nft",(req, res) => {
     else if(parseInt(req.body.chainId)==4 || String(req.body.chainId)=="0x4"){
       query={
         owner:req.body.owner,
-        chainId:{decimal:4,hexa:"0x4"},
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
         $and:[
           {tokenAddr: {$ne:"0xDB753bacDFb788c4d70CEc237F898db21017B11d"}},
           {tokenAddr: {$ne:"0x848655Ccc2E571cA9470954BF08C4Eab3436830B"}},
@@ -1175,13 +1175,13 @@ routes.post("/external-nft",(req, res) => {
     else if(parseInt(req.body.chainId)==137 || String(req.body.chainId)=="0x89"){
       query={
         owner:req.body.owner,
-        chainId:{decimal:137,hexa:"0x89"},
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
       }
     }
     else if(parseInt(req.body.chainId)==80001 || String(req.body.chainId)=="0x13881"){
       query={
         owner:req.body.owner,
-        chainId:{decimal:80001,hexa:"0x13881"},
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
       }
     }
     let externalNft= models.nftControllerModel.find(query)
