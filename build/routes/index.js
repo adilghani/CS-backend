@@ -35,7 +35,8 @@ routes.use(bodyParser.json());
 const s3 = new AWS.S3({
   accessKeyId: "AKIASAFVMRRSMD5RISOV",
   secretAccessKey: "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"
-}); // routes.use(apiAuth.userAuth)
+});
+routes.use(apiAuth.userAuth);
 
 async function auth(req, res, next) {
   var authHeader = req.header('authorization');
@@ -108,7 +109,7 @@ async function auth(req, res, next) {
 }
 
 ;
-routes.get("/", apiAuth.userAuth, (req, res) => {
+routes.get("/", (req, res) => {
   res.status(200).json({
     message: "ClosedSea Backend Service"
   });
@@ -1622,94 +1623,154 @@ routes.post("/external-nft", (req, res) => {
 
     if (parseInt(req.body.chainId) == 56 || String(req.body.chainId) == "0x38") {
       query = {
-        owner: req.body.owner,
-        chainId: {
-          decimal: 56,
-          hexa: "0x38"
+        owner: {
+          '$regex': '^' + req.body.owner + '$',
+          "$options": "i"
         },
+        $or: [{
+          "chainId.decimal": parseInt(req.body.chainId)
+        }, {
+          "decimal.hexa": String(req.body.chainId)
+        }],
         $and: [{
           tokenAddr: {
-            $ne: "0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0"
+            $ne: {
+              '$regex': '^' + "0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43"
+            $ne: {
+              '$regex': '^' + "0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0xA84ABA462A3dc12A5874c8D0D61d757256C905a5"
+            $ne: {
+              '$regex': '^' + "0xA84ABA462A3dc12A5874c8D0D61d757256C905a5" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE"
+            $ne: {
+              '$regex': '^' + "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x69903cd9dBBEC1bcaB81E1ffe003260e9e487Ca4"
+            $ne: {
+              '$regex': '^' + "0x69903cd9dBBEC1bcaB81E1ffe003260e9e487Ca4" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0xe9e7cea3dedca5984780bafc599bd69add087d56"
+            $ne: {
+              '$regex': '^' + "0xe9e7cea3dedca5984780bafc599bd69add087d56" + '$',
+              '$option': i
+            }
           }
         }]
       };
     } else if (parseInt(req.body.chainId) == 97 || String(req.body.chainId) == "0x61") {
       query = {
-        owner: req.body.owner,
-        chainId: {
-          decimal: 97,
-          hexa: "0x61"
+        owner: {
+          '$regex': '^' + req.body.owner + '$',
+          "$options": "i"
         },
+        $or: [{
+          "chainId.decimal": parseInt(req.body.chainId)
+        }, {
+          "decimal.hexa": String(req.body.chainId)
+        }],
         $and: [{
           tokenAddr: {
-            $ne: "0x69536bdf4B18499181EB386B0E4019a28C4Fb096"
+            $ne: {
+              '$regex': '^' + "0x69536bdf4B18499181EB386B0E4019a28C4Fb096" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0xA4fb840986B10aC44aA893793cfe755c81c3740D"
+            $ne: {
+              '$regex': '^' + "0xA4fb840986B10aC44aA893793cfe755c81c3740D" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D"
+            $ne: {
+              '$regex': '^' + "0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"
+            $ne: {
+              '$regex': '^' + "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x51c19275686d84c1553f3edd2945dba6ec0c7de4"
+            $ne: {
+              '$regex': '^' + "0x51c19275686d84c1553f3edd2945dba6ec0c7de4" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47"
+            $ne: {
+              '$regex': '^' + "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47" + '$',
+              '$option': i
+            }
           }
         }]
       };
     } else if (parseInt(req.body.chainId) == 4 || String(req.body.chainId) == "0x4") {
       query = {
-        owner: req.body.owner,
-        chainId: {
-          decimal: 4,
-          hexa: "0x4"
+        owner: {
+          '$regex': '^' + req.body.owner + '$',
+          "$options": "i"
         },
+        $or: [{
+          "chainId.decimal": parseInt(req.body.chainId)
+        }, {
+          "decimal.hexa": String(req.body.chainId)
+        }],
         $and: [{
           tokenAddr: {
-            $ne: "0xDB753bacDFb788c4d70CEc237F898db21017B11d"
+            $ne: {
+              '$regex': '^' + "0xDB753bacDFb788c4d70CEc237F898db21017B11d" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x848655Ccc2E571cA9470954BF08C4Eab3436830B"
+            $ne: {
+              '$regex': '^' + "0x848655Ccc2E571cA9470954BF08C4Eab3436830B" + '$',
+              '$option': i
+            }
           }
         }, {
           tokenAddr: {
-            $ne: "0x8A36a5395CAa70da6545f030BFB659Fc8e820A59"
+            $ne: {
+              '$regex': '^' + "0x8A36a5395CAa70da6545f030BFB659Fc8e820A59" + '$',
+              '$option': i
+            }
           }
         }]
       };
     } else if (parseInt(req.body.chainId) == 1 || String(req.body.chainId) == "0x1") {
       query = {
-        owner: req.body.owner,
+        owner: {
+          '$regex': '^' + req.body.owner + '$',
+          "$options": "i"
+        },
         chainId: {
           decimal: 1,
           hexa: "0x1"
@@ -1717,19 +1778,27 @@ routes.post("/external-nft", (req, res) => {
       };
     } else if (parseInt(req.body.chainId) == 137 || String(req.body.chainId) == "0x89") {
       query = {
-        owner: req.body.owner,
-        chainId: {
-          decimal: 137,
-          hexa: "0x89"
-        }
+        owner: {
+          '$regex': '^' + req.body.owner + '$',
+          "$options": "i"
+        },
+        $or: [{
+          "chainId.decimal": parseInt(req.body.chainId)
+        }, {
+          "decimal.hexa": String(req.body.chainId)
+        }]
       };
     } else if (parseInt(req.body.chainId) == 80001 || String(req.body.chainId) == "0x13881") {
       query = {
-        owner: req.body.owner,
-        chainId: {
-          decimal: 80001,
-          hexa: "0x13881"
-        }
+        owner: {
+          '$regex': '^' + req.body.owner + '$',
+          "$options": "i"
+        },
+        $or: [{
+          "chainId.decimal": parseInt(req.body.chainId)
+        }, {
+          "decimal.hexa": String(req.body.chainId)
+        }]
       };
     }
 
