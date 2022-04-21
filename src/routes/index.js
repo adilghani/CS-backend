@@ -1146,7 +1146,7 @@ routes.post("/external-nft",(req, res) => {
         owner:req.body.owner,
         chainId:{decimal:97,hexa:"0x61"},
         $and:[
-          {tokenAddr: {$ne:"0x69536bdf4B18499181EB386B0E4019a28C4Fb096"}},
+          // {tokenAddr: {$ne:"0x69536bdf4B18499181EB386B0E4019a28C4Fb096"}},
           {tokenAddr: {$ne:"0xA4fb840986B10aC44aA893793cfe755c81c3740D"}},
           {tokenAddr: {$ne:"0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D"}},
           {tokenAddr: {$ne:"0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"}},
