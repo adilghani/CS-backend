@@ -1277,6 +1277,40 @@ routes.post("/update-nft-status",auth,(req, res) => {
 
 })
 
+routes.post("/least-price-nft",async (req, res) => {
+  try{
+  let filterData=await models.collectionModel.aggregate([
+    {$match : {name:req.body.name}},
+    {$lookup: {
+        "from": "nftcontrollers",
+        "let": {token: "$tokens"},
+        pipeline: [
+          {
+            "$match": {
+              "$expr": {
+                $and:
+										[{$in: ["$tokenAddr", "$$token.tokenAddress"]},{$in: [{ $toInt: "$tokenId"}, "$$token.tokenId"]} ]
+								}
+            },
+          },
+        ],
+        as: "details"
+      }} ,
+    { $unwind : "$details" },
+    { "$sort": {"details.price":1} },
+    { $limit : 1 }
+  ]).exec();
+  if(filterData[0]){
+    res.status(200).json(filterData[0].details);
+  }
+  else{
+    res.status(500).json("data not found");
+  }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
 routes.post("/most-liked-nft",async (req, res) => {
   let limit=parseInt(req.body.size);
   let page=parseInt(req.body.page);

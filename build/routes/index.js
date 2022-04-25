@@ -1634,45 +1634,27 @@ routes.post("/external-nft", (req, res) => {
         }],
         $and: [{
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0" + '$',
-              '$option': i
-            }
+            $ne: "0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43" + '$',
-              '$option': i
-            }
+            $ne: "0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0xA84ABA462A3dc12A5874c8D0D61d757256C905a5" + '$',
-              '$option': i
-            }
+            $ne: "0xA84ABA462A3dc12A5874c8D0D61d757256C905a5"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE" + '$',
-              '$option': i
-            }
+            $ne: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x69903cd9dBBEC1bcaB81E1ffe003260e9e487Ca4" + '$',
-              '$option': i
-            }
+            $ne: "0x69903cd9dBBEC1bcaB81E1ffe003260e9e487Ca4"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0xe9e7cea3dedca5984780bafc599bd69add087d56" + '$',
-              '$option': i
-            }
+            $ne: "0xe9e7cea3dedca5984780bafc599bd69add087d56"
           }
         }]
       };
@@ -1689,45 +1671,27 @@ routes.post("/external-nft", (req, res) => {
         }],
         $and: [{
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x69536bdf4B18499181EB386B0E4019a28C4Fb096" + '$',
-              '$option': i
-            }
+            $ne: "0x69536bdf4B18499181EB386B0E4019a28C4Fb096"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0xA4fb840986B10aC44aA893793cfe755c81c3740D" + '$',
-              '$option': i
-            }
+            $ne: "0xA4fb840986B10aC44aA893793cfe755c81c3740D"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D" + '$',
-              '$option': i
-            }
+            $ne: "0xBec98ca675EE0099E7eaF0d626a38abAE42Ef24D"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" + '$',
-              '$option': i
-            }
+            $ne: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x51c19275686d84c1553f3edd2945dba6ec0c7de4" + '$',
-              '$option': i
-            }
+            $ne: "0x51c19275686d84c1553f3edd2945dba6ec0c7de4"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47" + '$',
-              '$option': i
-            }
+            $ne: "0x8301f2213c0eed49a7e28ae4c3e91722919b8b47"
           }
         }]
       };
@@ -1744,24 +1708,15 @@ routes.post("/external-nft", (req, res) => {
         }],
         $and: [{
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0xDB753bacDFb788c4d70CEc237F898db21017B11d" + '$',
-              '$option': i
-            }
+            $ne: "0xDB753bacDFb788c4d70CEc237F898db21017B11d"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x848655Ccc2E571cA9470954BF08C4Eab3436830B" + '$',
-              '$option': i
-            }
+            $ne: "0x848655Ccc2E571cA9470954BF08C4Eab3436830B"
           }
         }, {
           tokenAddr: {
-            $ne: {
-              '$regex': '^' + "0x8A36a5395CAa70da6545f030BFB659Fc8e820A59" + '$',
-              '$option': i
-            }
+            $ne: "0x8A36a5395CAa70da6545f030BFB659Fc8e820A59"
           }
         }]
       };
@@ -1937,6 +1892,55 @@ routes.post("/update-nft-status", auth, (req, res) => {
       });
     }
   });
+});
+routes.post("/least-price-nft", async (req, res) => {
+  try {
+    let filterData = await _models.default.collectionModel.aggregate([{
+      $match: {
+        name: req.body.name
+      }
+    }, {
+      $lookup: {
+        "from": "nftcontrollers",
+        "let": {
+          token: "$tokens"
+        },
+        pipeline: [{
+          "$match": {
+            "$expr": {
+              $and: [{
+                $in: ["$tokenAddr", "$$token.tokenAddress"]
+              }, {
+                $in: [{
+                  $toInt: "$tokenId"
+                }, "$$token.tokenId"]
+              }]
+            }
+          }
+        }],
+        as: "details"
+      }
+    }, {
+      $unwind: "$details"
+    }, {
+      "$sort": {
+        "details.price": 1
+      }
+    }, {
+      $limit: 1
+    }]).exec();
+
+    if (filterData[0]) {
+      res.status(200).json(filterData[0].details);
+    } else {
+      res.status(500).json("data not found");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
 });
 routes.post("/most-liked-nft", async (req, res) => {
   let limit = parseInt(req.body.size);
