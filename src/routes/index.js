@@ -1277,7 +1277,7 @@ routes.post("/update-nft-status",auth,(req, res) => {
 
 })
 
-routes.post("/least-price-nft",async (req, res) => {
+routes.post("/lowest-price-nft",async (req, res) => {
   try{
   let filterData=await models.collectionModel.aggregate([
     {$match : {name:req.body.name}},
