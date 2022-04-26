@@ -1297,6 +1297,7 @@ routes.post("/lowest-price-nft",async (req, res) => {
         as: "details"
       }} ,
     { $unwind : "$details" },
+    { $match: {'details.price':{$exists:true} }},
     { "$sort": {"details.price":1} },
     { $limit : 1 }
   ]).exec();

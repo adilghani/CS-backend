@@ -1893,7 +1893,7 @@ routes.post("/update-nft-status", auth, (req, res) => {
     }
   });
 });
-routes.post("/least-price-nft", async (req, res) => {
+routes.post("/lowest-price-nft", async (req, res) => {
   try {
     let filterData = await _models.default.collectionModel.aggregate([{
       $match: {
@@ -1922,6 +1922,12 @@ routes.post("/least-price-nft", async (req, res) => {
       }
     }, {
       $unwind: "$details"
+    }, {
+      $match: {
+        'details.price': {
+          $exists: true
+        }
+      }
     }, {
       "$sort": {
         "details.price": 1
