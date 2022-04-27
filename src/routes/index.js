@@ -632,7 +632,7 @@ routes.get("/my-collections/v2", async (req, res) => {
 
 routes.post("/inc-in-owner-count", async (req, res) => {
   try {
-    if(req.query.tokenId && req.query.tokenAddress){
+    if(req.body.tokenId && req.body.tokenAddress){
       const collections = await models.collectionModel.findOneAndUpdate({tokens:{$elemMatch:{tokenId: parseInt(req.body.tokenId),tokenAddress: {'$regex': '^'+req.body.tokenAddress+'$','$options': 'i'}}}},{ $inc: { noOfOwner: 1}},{new:true}).lean().exec();
       res.status(200).json(collections);
     }
