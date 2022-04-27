@@ -64,7 +64,8 @@ const collectionSchema = new mongoose.Schema({
     type: Array
   },
   isVerified:{type:Boolean,default:false},
-  category:{type:String,default:"utlity"}
+  category:{type:String,default:"utlity"},
+  noOfOwner:Number
 },{timestamps: true});
 
 const viewAndLikeSchema = new mongoose.Schema({

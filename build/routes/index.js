@@ -1909,7 +1909,7 @@ routes.post("/lowest-price-nft", async (req, res) => {
           "$match": {
             "$expr": {
               $and: [{
-                $in: ["$tokenAddr", "$$token.tokenAddress"]
+                $strcasecmp: ["$tokenAddr", "$$token.tokenAddress"]
               }, {
                 $in: [{
                   $toInt: "$tokenId"
@@ -1920,20 +1920,6 @@ routes.post("/lowest-price-nft", async (req, res) => {
         }],
         as: "details"
       }
-    }, {
-      $unwind: "$details"
-    }, {
-      $match: {
-        'details.price': {
-          $exists: true
-        }
-      }
-    }, {
-      "$sort": {
-        "details.price": 1
-      }
-    }, {
-      $limit: 1
     }]).exec();
 
     if (filterData[0]) {

@@ -630,6 +630,20 @@ routes.get("/my-collections/v2", async (req, res) => {
   }
 });
 
+routes.post("/inc-in-owner-count", async (req, res) => {
+  try {
+    if(req.query.tokenId && req.query.tokenAddress){
+      const collections = await models.collectionModel.findOneAndUpdate({tokens:{$elemMatch:{tokenId: parseInt(req.body.tokenId),tokenAddress: {'$regex': '^'+req.body.tokenAddress+'$','$options': 'i'}}}},{ $inc: { noOfOwner: 1}},{new:true}).lean().exec();
+      res.status(200).json(collections);
+    }
+    else{
+      res.status(400).json({message:"Required value not found"});
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
+});
+
 routes.put("/insert-token-to-collection", async (req, res) => {
   try {
     const { body } = req;
@@ -1051,7 +1065,7 @@ routes.post("/nfts-wrt-tokenaddr-and-id",async (req, res) => {
       findNft(tokens[i]);
       async function findNft(token){
         if(!Object.keys(token).length<2 && token.id && token.address){
-          let nft =await models.nftControllerModel.findOne({tokenId: token.id , tokenAddr: { '$regex' : '^'+token.address+'$', "$options": "i" }}).lean().exec();
+          let nft =await models.nftControllerModel.findOne({tokenId: token.id , tokenAddr: { '$regex' : '^'+token.address+'$', "$options": "i" },$or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}]}).lean().exec();
           if(nft){
             data.push(nft)
           }
@@ -1296,10 +1310,10 @@ routes.post("/lowest-price-nft",async (req, res) => {
         ],
         as: "details"
       }} ,
-    { $unwind : "$details" },
-    { $match: {'details.price':{$exists:true} }},
-    { "$sort": {"details.price":1} },
-    { $limit : 1 }
+      { $unwind : "$details" },
+      { $match: {'details.price':{$exists:true} }},
+      { "$sort": {"details.price":1} },
+      { $limit : 1 }
   ]).exec();
   if(filterData[0]){
     res.status(200).json(filterData[0].details);
