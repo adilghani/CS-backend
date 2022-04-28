@@ -1303,7 +1303,7 @@ routes.post("/lowest-price-nft",async (req, res) => {
             "$match": {
               "$expr": {
                 $and:
-										[{$in: ["$tokenAddr", "$$token.tokenAddress"]},{$in: [{ $toInt: "$tokenId"}, "$$token.tokenId"]} ]
+										[{$in: ["$tokenAddr", "$$token.tokenAddress"]},{$in: [{ $toInt: "$tokenId"}, "$$token.tokenId"]},{$or: [{$in:["$chainId.decimal", "$$token.chainId"]}, {$in:["$chainId.hexa", "$$token.chainId"]}]} ]
 								}
             },
           },
