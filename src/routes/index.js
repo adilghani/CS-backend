@@ -633,7 +633,7 @@ routes.get("/my-collections/v2", async (req, res) => {
 routes.post("/inc-in-owner-count", async (req, res) => {
   try {
     if(req.body.tokenId && req.body.tokenAddress){
-      const collections = await models.collectionModel.findOneAndUpdate({tokens:{$elemMatch:{tokenId: parseInt(req.body.tokenId),tokenAddress: {'$regex': '^'+req.body.tokenAddress+'$','$options': 'i'},$or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}]}}},{ $inc: { noOfOwner: 1}},{new:true}).lean().exec();
+      const collections = await models.collectionModel.findOneAndUpdate({tokens:{$elemMatch:{tokenId: parseInt(req.body.tokenId),tokenAddress: {'$regex': '^'+req.body.tokenAddress+'$','$options': 'i'},$or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}]}}},{ $inc: { noOfOwner: 1}},{new:true}).lean().exec();
       res.status(200).json(collections);
     }
     else{
@@ -1065,7 +1065,7 @@ routes.post("/nfts-wrt-tokenaddr-and-id",async (req, res) => {
       findNft(tokens[i]);
       async function findNft(token){
         if(!Object.keys(token).length<2 && token.id && token.address){
-          let nft =await models.nftControllerModel.findOne({tokenId: token.id , tokenAddr: { '$regex' : '^'+token.address+'$', "$options": "i" },$or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}]}).lean().exec();
+          let nft =await models.nftControllerModel.findOne({$and:[{tokenId: token.id} , {tokenAddr: { '$regex' : '^'+token.address+'$', "$options": "i" }},{$or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}]}]}).lean().exec();
           if(nft){
             data.push(nft)
           }
@@ -1144,7 +1144,7 @@ routes.post("/external-nft",(req, res) => {
     if(parseInt(req.body.chainId)==56 || String(req.body.chainId)=="0x38"){
       query={
         owner:{ '$regex' : '^'+req.body.owner+'$', "$options": "i" },
-        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}],
         $and:[
           {tokenAddr: {$ne:"0xB2D4C7AfFa1B01fa33C82A8aC63075BD366df4b0"}},
           {tokenAddr: {$ne:"0x5b31d474dcadc1c2a1dfc7d4562b2268b0feea43"}},
@@ -1158,7 +1158,7 @@ routes.post("/external-nft",(req, res) => {
     else if(parseInt(req.body.chainId)==97 || String(req.body.chainId)=="0x61"){
       query={
         owner:{ '$regex' : '^'+req.body.owner+'$', "$options": "i" },
-        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}],
         $and:[
           {tokenAddr: {$ne:"0x69536bdf4B18499181EB386B0E4019a28C4Fb096"}},
           {tokenAddr: {$ne:"0xA4fb840986B10aC44aA893793cfe755c81c3740D"}},
@@ -1172,7 +1172,7 @@ routes.post("/external-nft",(req, res) => {
     else if(parseInt(req.body.chainId)==4 || String(req.body.chainId)=="0x4"){
       query={
         owner:{ '$regex' : '^'+req.body.owner+'$', "$options": "i" },
-        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}],
         $and:[
           {tokenAddr: {$ne:"0xDB753bacDFb788c4d70CEc237F898db21017B11d"}},
           {tokenAddr: {$ne:"0x848655Ccc2E571cA9470954BF08C4Eab3436830B"}},
@@ -1189,13 +1189,13 @@ routes.post("/external-nft",(req, res) => {
     else if(parseInt(req.body.chainId)==137 || String(req.body.chainId)=="0x89"){
       query={
         owner:{ '$regex' : '^'+req.body.owner+'$', "$options": "i" },
-        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}],
       }
     }
     else if(parseInt(req.body.chainId)==80001 || String(req.body.chainId)=="0x13881"){
       query={
         owner:{ '$regex' : '^'+req.body.owner+'$', "$options": "i" },
-        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"decimal.hexa":String(req.body.chainId)}],
+        $or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}],
       }
     }
     let externalNft= models.nftControllerModel.find(query)
@@ -1291,7 +1291,7 @@ routes.post("/update-nft-status",auth,(req, res) => {
 
 })
 
-routes.post("/lowest-price-nft",async (req, res) => {
+routes.post("/lowest-price-nft/v2",async (req, res) => {
   try{
   let filterData=await models.collectionModel.aggregate([
     {$match : {name:req.body.name}},
@@ -1317,6 +1317,20 @@ routes.post("/lowest-price-nft",async (req, res) => {
   ]).exec();
   if(filterData[0]){
     res.status(200).json(filterData[0].details);
+  }
+  else{
+    res.status(500).json("data not found");
+  }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
+routes.post("/lowest-price-nft",async (req, res) => {
+  try{
+  let filterData = await models.nftControllerModel.find({$or:[{"chainId.decimal":parseInt(req.body.chainId)},{"chainId.hexa":String(req.body.chainId)}],price:{$exists:true}}).sort({price:1}).limit(1).lean().exec();
+  if(filterData[0]){
+    res.status(200).json(filterData[0]);
   }
   else{
     res.status(500).json("data not found");

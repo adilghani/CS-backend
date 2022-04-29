@@ -83,7 +83,8 @@ const collectionSchema = new _mongoose.default.Schema({
   category: {
     type: String,
     default: "utlity"
-  }
+  },
+  noOfOwner: Number
 }, {
   timestamps: true
 });
