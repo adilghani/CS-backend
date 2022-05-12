@@ -1138,6 +1138,35 @@ routes.post("/nft-collector",(req, res) => {
 }
 })
 
+routes.post("/nft-auction",(req, res) => {
+  try{
+    if(req.body.tokenId && req.body.tokenAddr && req.body.endTime){
+    let filterData=models.nftAuctionmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
+      filterData.exec((err,data)=>{
+        if (err) throw err;
+        if(data!==null){
+          res.status(200).json({message:"NFT is Already in Auction"})
+        }
+        else{
+          let createNft=new models.nftAuctionmodel({
+            tokenAddr: req.body.tokenAddr,
+            tokenId: req.body.tokenId,
+            endTime:req.body.endTime
+          })
+          createNft.save(function(){
+            res.status(200).json({message:"Success"})
+        });
+        }
+      })
+    }
+    else{
+      res.status(500).json("Token Id or Token Address or End Time is not Defined");
+    }
+  } catch (error) {
+  res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
 routes.post("/external-nft",(req, res) => {
   try{
     let query;
