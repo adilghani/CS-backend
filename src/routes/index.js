@@ -1170,7 +1170,7 @@ routes.post("/nft-auction",async (req, res) => {
 
 routes.post("/nft-bid",async (req, res) => {
   try{
-    if(req.body.tokenId && req.body.tokenAddr && req.body.startTime && req.body.endTime && req.body.userAddress && req.body.price){
+    if(req.body.tokenId && req.body.tokenAddr && req.body.userAddress && req.body.price){
     let filterData=models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
       filterData.exec(async (err,data)=>{
         if (err) throw err;
@@ -1184,8 +1184,6 @@ routes.post("/nft-bid",async (req, res) => {
           await new models.nftBidmodel({
             tokenAddr:req.body.tokenAddr,
             tokenId:req.body.tokenId,
-            startTime:req.body.startTime,
-            endTime:req.body.endTime,
             bid:{address:req.body.userAddress , price:req.body.price}
           }).save()
           return res.status(200).json("You have Successfully bid for NFT");

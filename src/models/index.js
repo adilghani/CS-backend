@@ -130,8 +130,6 @@ const nftBidSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  startTime: {type: Date, default: Date.now()},
-  endTime:{type: Date},
   bid:{type:Array}
 },{timestamps: true});
 
