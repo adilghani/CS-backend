@@ -116,10 +116,12 @@ const nftControllerSchema = new mongoose.Schema({
   featured:{type:Boolean,default:false},
   chainId:Object,
   relatedCollectionId:String,
-  isOnSell:{type:Boolean,default:false}
+  isOnSell:{type:Boolean,default:false},
+  isOnAuction:{type:Boolean},
+  auction:{type:Object}
 },{timestamps: true});
 
-const nftAuctionSchema = new mongoose.Schema({
+const nftBidSchema = new mongoose.Schema({
   tokenAddr: {
     type: String,
     required: true
@@ -129,7 +131,8 @@ const nftAuctionSchema = new mongoose.Schema({
     required: true
   },
   startTime: {type: Date, default: Date.now()},
-  endTime:{type: Date}
+  endTime:{type: Date},
+  bid:{type:Array}
 },{timestamps: true});
 
 const adminRegiterSchema = new mongoose.Schema({
@@ -180,7 +183,7 @@ const adminRegisterModel = mongoose.model('Admins', adminRegiterSchema);
 const uploadSliderModel = mongoose.model('slider', uploadSliderSchema);
 const uploadfeaturemodel = mongoose.model('featurecollection', uploadfeatureSchema);
 const notificationmodel = mongoose.model('notification', notificationSchema);
-const nftAuctionmodel = mongoose.model('nftauction', nftAuctionSchema);
+const nftBidmodel = mongoose.model('nftbid', nftBidSchema);
 
 const models = {
   userModel,
@@ -191,7 +194,7 @@ const models = {
   uploadSliderModel,
   uploadfeaturemodel,
   notificationmodel,
-  nftAuctionmodel
+  nftBidmodel
 };
 
 export default models;

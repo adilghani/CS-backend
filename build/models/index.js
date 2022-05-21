@@ -143,6 +143,34 @@ const nftControllerSchema = new _mongoose.default.Schema({
   isOnSell: {
     type: Boolean,
     default: false
+  },
+  isOnAuction: {
+    type: Boolean
+  },
+  auction: {
+    type: Object
+  }
+}, {
+  timestamps: true
+});
+const nftBidSchema = new _mongoose.default.Schema({
+  tokenAddr: {
+    type: String,
+    required: true
+  },
+  tokenId: {
+    type: String,
+    required: true
+  },
+  startTime: {
+    type: Date,
+    default: Date.now()
+  },
+  endTime: {
+    type: Date
+  },
+  bid: {
+    type: Array
   }
 }, {
   timestamps: true
@@ -208,6 +236,8 @@ const uploadfeaturemodel = _mongoose.default.model('featurecollection', uploadfe
 
 const notificationmodel = _mongoose.default.model('notification', notificationSchema);
 
+const nftBidmodel = _mongoose.default.model('nftbid', nftBidSchema);
+
 const models = {
   userModel,
   collectionModel,
@@ -216,7 +246,8 @@ const models = {
   adminRegisterModel,
   uploadSliderModel,
   uploadfeaturemodel,
-  notificationmodel
+  notificationmodel,
+  nftBidmodel
 };
 var _default = models;
 exports.default = _default;
