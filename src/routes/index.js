@@ -1122,7 +1122,8 @@ routes.post("/nft-collector",(req, res) => {
             tokenUri:req.body.tokenUri,
             chainId:req.body.chainId,
             relatedCollectionId:req.body.relatedCollectionId,
-            status:"pending"
+            status:"pending",
+            withEther:req.body.withEther
           })
           createNft.save(function(){
             res.status(200).json({message:"Success"})
@@ -1363,7 +1364,8 @@ routes.post("/insert-multiple-nft",async (req, res) => {
               tokenUri:nfts[i].tokenUri,
               chainId:nfts[i].chainId,
               relatedCollectionId:nfts[i].relatedCollectionId,
-              status:"pending"
+              status:"pending",
+              withEther:nfts[i].withEther
           }).save();
         }
         if(i==nfts.length-1){

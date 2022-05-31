@@ -118,7 +118,8 @@ const nftControllerSchema = new mongoose.Schema({
   relatedCollectionId:String,
   isOnSell:{type:Boolean,default:false},
   isOnAuction:{type:Boolean},
-  auction:{type:Object}
+  auction:{type:Object},
+  withEther:{type:Boolean}
 },{timestamps: true});
 
 const nftBidSchema = new mongoose.Schema({
