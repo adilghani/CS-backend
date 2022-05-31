@@ -1687,6 +1687,7 @@ routes.post("/nft-auction", async (req, res) => {
             }
           }, {
             isOnAuction: true,
+            isOnSell: true,
             auction: {
               intialPrice: req.body.intialPrice,
               startTime: req.body.startTime,
@@ -1708,9 +1709,50 @@ routes.post("/nft-auction", async (req, res) => {
     });
   }
 });
+routes.post("/nft-auction-cancel", async (req, res) => {
+  try {
+    if (req.body.tokenId && req.body.tokenAddr) {
+      let filterData = _models.default.nftControllerModel.findOne({
+        tokenId: String(req.body.tokenId),
+        tokenAddr: {
+          '$regex': '^' + req.body.tokenAddr + '$',
+          "$options": "i"
+        }
+      });
+
+      filterData.exec(async (err, data) => {
+        if (err) throw err;
+
+        if (data) {
+          await _models.default.nftControllerModel.findOneAndUpdate({
+            tokenId: String(req.body.tokenId),
+            tokenAddr: {
+              '$regex': '^' + req.body.tokenAddr + '$',
+              "$options": "i"
+            }
+          }, {
+            isOnAuction: false,
+            isOnSell: false,
+            auction: null
+          }).exec();
+          return res.status(200).json("Now NFT is On Auction Cancel");
+        } else {
+          res.status(500).json("NFT not Found!");
+        }
+      });
+    } else {
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
 routes.post("/nft-bid", async (req, res) => {
   try {
-    if (req.body.tokenId && req.body.tokenAddr && req.body.startTime && req.body.endTime && req.body.userAddress && req.body.price) {
+    if (req.body.tokenId && req.body.tokenAddr && req.body.userAddress && req.body.price) {
       let filterData = _models.default.nftBidmodel.findOne({
         tokenId: String(req.body.tokenId),
         tokenAddr: {
@@ -1742,8 +1784,6 @@ routes.post("/nft-bid", async (req, res) => {
           await new _models.default.nftBidmodel({
             tokenAddr: req.body.tokenAddr,
             tokenId: req.body.tokenId,
-            startTime: req.body.startTime,
-            endTime: req.body.endTime,
             bid: {
               address: req.body.userAddress,
               price: req.body.price
@@ -1752,6 +1792,88 @@ routes.post("/nft-bid", async (req, res) => {
           return res.status(200).json("You have Successfully bid for NFT");
         }
       });
+    } else {
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
+routes.post("/get-nft-bid", async (req, res) => {
+  try {
+    console.log("running");
+
+    if (req.body.tokenId && req.body.tokenAddr) {
+      let data = _models.default.nftBidmodel.aggregate([{
+        $match: {
+          tokenId: String(req.body.tokenId),
+          tokenAddr: {
+            '$regex': '^' + req.body.tokenAddr + '$',
+            "$options": "i"
+          }
+        }
+      }, {
+        $project: {
+          _id: 0,
+          result: {
+            $sortArray: {
+              input: "$bid",
+              sortBy: {
+                price: 1
+              }
+            }
+          }
+        }
+      }]).exec();
+
+      if (data.length > 0) {
+        return res.status(200).json(data);
+      } else {
+        return res.status(200).json("No NFT Found");
+      }
+    } else {
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
+routes.post("/user-bid-nft", async (req, res) => {
+  try {
+    if (req.body.tokenId && req.body.tokenAddr) {
+      let data = _models.default.nftBidmodel.aggregate([{
+        $match: {
+          tokenId: String(req.body.tokenId),
+          tokenAddr: {
+            '$regex': '^' + req.body.tokenAddr + '$',
+            "$options": "i"
+          }
+        }
+      }, {
+        $project: {
+          _id: 0,
+          result: {
+            $sortArray: {
+              input: "$bid",
+              sortBy: {
+                price: 1
+              }
+            }
+          }
+        }
+      }]).exec();
+
+      if (data.length > 0) {
+        return res.status(200).json(data);
+      } else {
+        return res.status(200).json("No NFT Found");
+      }
     } else {
       res.status(500).json("Payload / Parameters Are Wrong!");
     }

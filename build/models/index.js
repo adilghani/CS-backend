@@ -162,13 +162,6 @@ const nftBidSchema = new _mongoose.default.Schema({
     type: String,
     required: true
   },
-  startTime: {
-    type: Date,
-    default: Date.now()
-  },
-  endTime: {
-    type: Date
-  },
   bid: {
     type: Array
   }

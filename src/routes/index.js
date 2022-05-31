@@ -1147,6 +1147,7 @@ routes.post("/nft-auction",async (req, res) => {
         if(data){
           await models.nftControllerModel.findOneAndUpdate({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
             isOnAuction:true,
+            isOnSell:true,
             auction:{
               intialPrice:req.body.intialPrice,
               startTime:req.body.startTime,
@@ -1177,6 +1178,7 @@ routes.post("/nft-auction-cancel",async (req, res) => {
         if(data){
           await models.nftControllerModel.findOneAndUpdate({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
             isOnAuction:false,
+            isOnSell:false,
             auction:null
           }).exec();
           return res.status(200).json("Now NFT is On Auction Cancel");
@@ -1213,6 +1215,50 @@ routes.post("/nft-bid",async (req, res) => {
             bid:{address:req.body.userAddress , price:req.body.price}
           }).save()
           return res.status(200).json("You have Successfully bid for NFT");
+        }
+      })
+    }
+    else{
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+  res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
+routes.post("/get-nft-bid",async (req, res) => {
+  try{
+    if(req.body.tokenId && req.body.tokenAddr){
+    let filterData=models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
+      filterData.exec(async (err,data)=>{
+        if (err) throw err;
+        if(data){
+          return res.status(200).json(data);
+        }
+        else{
+          return res.status(200).json("No NFT Found");
+        }
+      })
+    }
+    else{
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+  res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
+routes.post("/user-bid-for-nft",async (req, res) => {
+  try{
+    if(req.body.tokenId && req.body.tokenAddr){
+    let filterData=models.nftBidmodel.find({"bid.address": { '$regex' : '^'+req.body.address+'$', "$options": "i" }});
+      filterData.exec(async (err,data)=>{
+        if (err) throw err;
+        if(data){
+          return res.status(200).json(data);
+        }
+        else{
+          return res.status(200).json("No NFT Found");
         }
       })
     }
