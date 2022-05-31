@@ -1250,7 +1250,7 @@ routes.post("/get-nft-bid",async (req, res) => {
 
 routes.post("/user-bid-for-nft",async (req, res) => {
   try{
-    if(req.body.tokenId && req.body.tokenAddr){
+    if(req.body.address){
     let filterData=models.nftBidmodel.find({"bid.address": { '$regex' : '^'+req.body.address+'$', "$options": "i" }});
       filterData.exec(async (err,data)=>{
         if (err) throw err;
