@@ -1204,10 +1204,20 @@ routes.post("/nft-bid",async (req, res) => {
       filterData.exec(async (err,data)=>{
         if (err) throw err;
         if(data){
-          await models.nftBidmodel.findOneAndUpdate({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
-            $push: {'bid': {address:req.body.userAddress , price:req.body.price}},
-          }).exec();
-          return res.status(200).json("You have Successfully bid for NFT");
+          let filterAddress=models.nftBidmodel.find({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" },"bid.address": { '$regex' : '^'+req.body.userAddress+'$', "$options": "i" }});
+          filterAddress.exec(async (err,address)=>{
+          if (err) throw err;
+          if(address.length>0){
+            return res.status(200).json("Wallet Address Already Exist Fot this NFT");
+          }
+
+          else{
+            await models.nftBidmodel.findOneAndUpdate({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
+              $push: {'bid': {address:req.body.userAddress , price:req.body.price}},
+            }).exec();
+            return res.status(200).json("You have Successfully bid for NFT");
+          }
+          })
         }
         else{
           await new models.nftBidmodel({
