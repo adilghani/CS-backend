@@ -149,6 +149,9 @@ const nftControllerSchema = new _mongoose.default.Schema({
   },
   auction: {
     type: Object
+  },
+  withEther: {
+    type: Boolean
   }
 }, {
   timestamps: true

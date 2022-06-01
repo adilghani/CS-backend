@@ -1099,12 +1099,14 @@ routes.post("/nft-collector",(req, res) => {
     let filterData=models.nftControllerModel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
       filterData.exec((err,data)=>{
         if (err) throw err;
+        console.log(data)
         if(data!==null){
           let updateNft= models.nftControllerModel.findOneAndUpdate({tokenId: String(req.body.tokenId),tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
             price: req.body.price,
             owner:req.body.ownerOf,
             selectedCat:req.body.selectedCat,
-            isOnSell:req.body.isOnSell
+            isOnSell:req.body.isOnSell,
+            withEther:req.body.withEther
           })
           updateNft.exec((err)=>{
             if(err) throw err;
