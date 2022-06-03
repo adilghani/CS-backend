@@ -1738,6 +1738,13 @@ routes.post("/nft-auction-cancel", async (req, res) => {
             isOnSell: false,
             auction: null
           }).exec();
+          await _models.default.nftBidmodel.findOneAndDelete({
+            tokenId: String(req.body.tokenId),
+            tokenAddr: {
+              '$regex': '^' + req.body.tokenAddr + '$',
+              "$options": "i"
+            }
+          }).exec();
           return res.status(200).json("Now NFT is On Auction Cancel");
         } else {
           res.status(500).json("NFT not Found!");
@@ -1797,7 +1804,7 @@ routes.post("/nft-bid", async (req, res) => {
                   'bid': {
                     bidder: req.body.bidder,
                     price: req.body.price,
-                    withEither: req.body.withEither,
+                    withEther: req.body.withEther,
                     bidTime: new Date(Date.now())
                   }
                 }
@@ -1812,7 +1819,7 @@ routes.post("/nft-bid", async (req, res) => {
             bid: {
               bidder: req.body.bidder,
               price: req.body.price,
-              withEither: req.body.withEither,
+              withEther: req.body.withEther,
               bidTime: new Date(Date.now())
             }
           }).save();
@@ -1882,7 +1889,7 @@ routes.post("/get-nft-bid", async (req, res) => {
 });
 routes.post("/user-bid-for-nft", async (req, res) => {
   try {
-    if (req.body.walletAddress) {
+    if (req.body.bidder) {
       let filterData = _models.default.nftBidmodel.find({
         "bid.bidder": {
           '$regex': '^' + req.body.bidder + '$',
@@ -1897,6 +1904,56 @@ routes.post("/user-bid-for-nft", async (req, res) => {
           return res.status(200).json(data);
         } else {
           return res.status(200).json("No Bid Found For this NFT");
+        }
+      });
+    } else {
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
+routes.post("/cancel-bid-for-nft", async (req, res) => {
+  try {
+    if (req.body.tokenId && req.body.tokenAddr && req.body.bidder) {
+      let filterAddress = _models.default.nftBidmodel.findOne({
+        tokenId: String(req.body.tokenId),
+        tokenAddr: {
+          '$regex': '^' + req.body.tokenAddr + '$',
+          "$options": "i"
+        },
+        "bid.bidder": {
+          '$regex': '^' + req.body.bidder + '$',
+          "$options": "i"
+        }
+      });
+
+      filterAddress.exec(async (err, data) => {
+        if (err) throw err;
+
+        if (data) {
+          console.log(data);
+          await _models.default.nftBidmodel.findOneAndUpdate({
+            tokenId: String(req.body.tokenId),
+            tokenAddr: {
+              '$regex': '^' + req.body.tokenAddr + '$',
+              "$options": "i"
+            }
+          }, {
+            $pull: {
+              "bid": {
+                "bidder": {
+                  '$regex': '^' + req.body.bidder + '$',
+                  "$options": "i"
+                }
+              }
+            }
+          }).exec();
+        } else {
+          return res.status(200).json("Bidder not Found For this NFT");
         }
       });
     } else {

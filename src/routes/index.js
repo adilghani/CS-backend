@@ -1184,6 +1184,7 @@ routes.post("/nft-auction-cancel",async (req, res) => {
             isOnSell:false,
             auction:null
           }).exec();
+          await models.nftBidmodel.findOneAndDelete({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }}).exec();
           return res.status(200).json("Now NFT is On Auction Cancel");
         }
         else{
@@ -1275,6 +1276,31 @@ routes.post("/user-bid-for-nft",async (req, res) => {
         }
         else{
           return res.status(200).json("No Bid Found For this NFT");
+        }
+      })
+    }
+    else{
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+  res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
+routes.post("/cancel-bid-for-nft",async (req, res) => {
+  try{
+    if(req.body.tokenId && req.body.tokenAddr && req.body.bidder){
+      let filterAddress=models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" },"bid.bidder": { '$regex' : '^'+req.body.bidder+'$', "$options": "i" }});
+      filterAddress.exec(async (err,data)=>{
+        if (err) throw err;
+        if(data){
+          await models.nftBidmodel.findOneAndUpdate({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
+            $pull: {"bid":{"bidder":  {'$regex' : '^'+req.body.bidder+'$', "$options": "i" }}},
+          }).exec();
+          return res.status(200).json("Bid for this NFT cancel successfully");
+        }
+        else{
+          return res.status(200).json("Bidder not Found For this NFT");
         }
       })
     }
