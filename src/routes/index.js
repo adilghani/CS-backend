@@ -1184,12 +1184,16 @@ routes.post("/nft-auction-cancel",async (req, res) => {
             isOnSell:false,
             auction:null
           }).exec();
-          await models.nftBidmodel.findOneAndDelete({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }}).exec();
-          return res.status(200).json("Now NFT is On Auction Cancel");
+
+        let nft=await models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }}).lean().exec();
+        if (nft){
+            await models.nftBidmodel.findOneAndDelete({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }}).exec();
         }
-        else{
-          res.status(500).json("NFT not Found!");
-        }
+        return res.status(200).json("Now NFT is On Auction Cancel");
+      }
+      else{
+        res.status(500).json("NFT not Found!");
+      }
       })
     }
     else{
