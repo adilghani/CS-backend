@@ -1774,7 +1774,7 @@ routes.post("/nft-bid", async (req, res) => {
               '$regex': '^' + req.body.tokenAddr + '$',
               "$options": "i"
             },
-            "bid.address": {
+            "bid.bidder": {
               '$regex': '^' + req.body.bidder + '$',
               "$options": "i"
             }
@@ -1797,7 +1797,8 @@ routes.post("/nft-bid", async (req, res) => {
                   'bid': {
                     bidder: req.body.bidder,
                     price: req.body.price,
-                    withEither: req.body.withEither
+                    withEither: req.body.withEither,
+                    bidTime: new Date(Date.now())
                   }
                 }
               }).exec();
@@ -1811,7 +1812,8 @@ routes.post("/nft-bid", async (req, res) => {
             bid: {
               bidder: req.body.bidder,
               price: req.body.price,
-              withEither: req.body.withEither
+              withEither: req.body.withEither,
+              bidTime: new Date(Date.now())
             }
           }).save();
           return res.status(200).json("You have Successfully bid for NFT");

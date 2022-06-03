@@ -1215,7 +1215,7 @@ routes.post("/nft-bid",async (req, res) => {
 
           else{
             await models.nftBidmodel.findOneAndUpdate({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
-              $push: {'bid': {bidder:req.body.bidder , price:req.body.price,withEither:req.body.withEither,bidTime:new Date(Date.now())}},
+              $push: {'bid': {bidder:req.body.bidder , price:req.body.price,withEther:req.body.withEther,bidTime:new Date(Date.now())}},
             }).exec();
             return res.status(200).json("You have Successfully bid for NFT");
           }
@@ -1225,7 +1225,7 @@ routes.post("/nft-bid",async (req, res) => {
           await new models.nftBidmodel({
             tokenAddr:req.body.tokenAddr,
             tokenId:req.body.tokenId,
-            bid:{bidder:req.body.bidder , price:req.body.price, withEither:req.body.withEither,bidTime:new Date(Date.now())}
+            bid:{bidder:req.body.bidder , price:req.body.price, withEther:req.body.withEther,bidTime:new Date(Date.now())}
           }).save()
           return res.status(200).json("You have Successfully bid for NFT");
         }
@@ -1266,7 +1266,7 @@ routes.post("/get-nft-bid",async (req, res) => {
 
 routes.post("/user-bid-for-nft",async (req, res) => {
   try{
-    if(req.body.walletAddress){
+    if(req.body.bidder){
     let filterData=models.nftBidmodel.find({"bid.bidder": { '$regex' : '^'+req.body.bidder+'$', "$options": "i" }});
       filterData.exec(async (err,data)=>{
         if (err) throw err;
