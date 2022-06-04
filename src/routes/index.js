@@ -1154,7 +1154,8 @@ routes.post("/nft-auction",async (req, res) => {
             auction:{
               intialPrice:req.body.intialPrice,
               startTime:req.body.startTime,
-              endTime:req.body.endTime
+              endTime:req.body.endTime,
+              withEther:req.body.withEther
             }
           }).exec();
           return res.status(200).json("Now NFT is On Auction");
@@ -1242,6 +1243,32 @@ routes.post("/nft-bid",async (req, res) => {
   } catch (error) {
   res.status(500).json({ message: "Some thing went wrong" , error:error.message});
 }
+})
+
+routes.post("/select-bidder",async (req, res) => {
+  try{
+    if(req.body.tokenId && req.body.tokenAddr && req.body.bidder){
+    let filterData=models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
+      filterData.exec(async (err,data)=>{
+        if (err) throw err;
+        if(data){
+            await models.nftBidmodel.findOneAndUpdate({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }},{
+              "selectedBidder":req.body.bidder,
+              "selected":true,
+            }).exec();
+            return res.status(200).json("You have Successfully bid for NFT");
+        }
+        else{
+          res.status(500).json("This NFT is not on Auction");
+        }
+      })
+    }
+    else{
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+  }
 })
 
 routes.post("/get-nft-bid",async (req, res) => {

@@ -131,6 +131,8 @@ const nftBidSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  selectedBidder:String,
+  selected:Boolean,
   bid:{type:Array}
 },{timestamps: true});
 
