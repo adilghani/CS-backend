@@ -1694,7 +1694,8 @@ routes.post("/nft-auction", async (req, res) => {
             auction: {
               intialPrice: req.body.intialPrice,
               startTime: req.body.startTime,
-              endTime: req.body.endTime
+              endTime: req.body.endTime,
+              withEther: req.body.withEther
             }
           }).exec();
           return res.status(200).json("Now NFT is On Auction");
@@ -1738,13 +1739,24 @@ routes.post("/nft-auction-cancel", async (req, res) => {
             isOnSell: false,
             auction: null
           }).exec();
-          await _models.default.nftBidmodel.findOneAndDelete({
+          let nft = await _models.default.nftBidmodel.findOne({
             tokenId: String(req.body.tokenId),
             tokenAddr: {
               '$regex': '^' + req.body.tokenAddr + '$',
               "$options": "i"
             }
-          }).exec();
+          }).lean().exec();
+
+          if (nft) {
+            await _models.default.nftBidmodel.findOneAndDelete({
+              tokenId: String(req.body.tokenId),
+              tokenAddr: {
+                '$regex': '^' + req.body.tokenAddr + '$',
+                "$options": "i"
+              }
+            }).exec();
+          }
+
           return res.status(200).json("Now NFT is On Auction Cancel");
         } else {
           res.status(500).json("NFT not Found!");
@@ -1836,6 +1848,50 @@ routes.post("/nft-bid", async (req, res) => {
     });
   }
 });
+routes.post("/select-bidder", async (req, res) => {
+  try {
+    if (req.body.tokenId && req.body.tokenAddr && req.body.bidder) {
+      let filterData = _models.default.nftBidmodel.findOne({
+        tokenId: String(req.body.tokenId),
+        tokenAddr: {
+          '$regex': '^' + req.body.tokenAddr + '$',
+          "$options": "i"
+        },
+        "bid.bidder": {
+          '$regex': '^' + req.body.bidder + '$',
+          "$options": "i"
+        }
+      });
+
+      filterData.exec(async (err, data) => {
+        if (err) throw err;
+
+        if (data) {
+          await _models.default.nftBidmodel.findOneAndUpdate({
+            tokenId: String(req.body.tokenId),
+            tokenAddr: {
+              '$regex': '^' + req.body.tokenAddr + '$',
+              "$options": "i"
+            }
+          }, {
+            "selectedBidder": req.body.bidder,
+            "selected": true
+          }).exec();
+          return res.status(200).json("You have Successfully bid for NFT");
+        } else {
+          res.status(500).json("This bidder is not bid for this NFT so place bid first.");
+        }
+      });
+    } else {
+      res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Some thing went wrong",
+      error: error.message
+    });
+  }
+});
 routes.post("/get-nft-bid", async (req, res) => {
   try {
     if (req.body.tokenId && req.body.tokenAddr) {
@@ -1871,8 +1927,22 @@ routes.post("/get-nft-bid", async (req, res) => {
           bid: 1
         }
       }]).exec();
+      let nft = await _models.default.nftBidmodel.findOne({
+        tokenId: String(req.body.tokenId),
+        tokenAddr: {
+          '$regex': '^' + req.body.tokenAddr + '$',
+          "$options": "i"
+        }
+      }).lean().exec();
 
       if (filterData) {
+        if (nft.selected && nft.selectedBidder) {
+          Object.assign(filterData[0], {
+            selected: nft.selected,
+            selectedBidder: nft.selectedBidder
+          });
+        }
+
         return res.status(200).json(filterData);
       } else {
         return res.status(200).json("No Bid Found For this NFT");
@@ -1935,7 +2005,6 @@ routes.post("/cancel-bid-for-nft", async (req, res) => {
         if (err) throw err;
 
         if (data) {
-          console.log(data);
           await _models.default.nftBidmodel.findOneAndUpdate({
             tokenId: String(req.body.tokenId),
             tokenAddr: {
@@ -1952,6 +2021,7 @@ routes.post("/cancel-bid-for-nft", async (req, res) => {
               }
             }
           }).exec();
+          return res.status(200).json("Bid for this NFT cancel successfully");
         } else {
           return res.status(200).json("Bidder not Found For this NFT");
         }

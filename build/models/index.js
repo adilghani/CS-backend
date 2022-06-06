@@ -165,6 +165,8 @@ const nftBidSchema = new _mongoose.default.Schema({
     type: String,
     required: true
   },
+  selectedBidder: String,
+  selected: Boolean,
   bid: {
     type: Array
   }

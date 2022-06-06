@@ -1248,7 +1248,7 @@ routes.post("/nft-bid",async (req, res) => {
 routes.post("/select-bidder",async (req, res) => {
   try{
     if(req.body.tokenId && req.body.tokenAddr && req.body.bidder){
-    let filterData=models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }});
+    let filterData=models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" },"bid.bidder": { '$regex' : '^'+req.body.bidder+'$', "$options": "i" }});
       filterData.exec(async (err,data)=>{
         if (err) throw err;
         if(data){
@@ -1259,7 +1259,7 @@ routes.post("/select-bidder",async (req, res) => {
             return res.status(200).json("You have Successfully bid for NFT");
         }
         else{
-          res.status(500).json("This NFT is not on Auction");
+          res.status(500).json("This bidder is not bid for this NFT so place bid first.");
         }
       })
     }
@@ -1282,7 +1282,12 @@ routes.post("/get-nft-bid",async (req, res) => {
         {$project:{"tokenId":"$_id.tokenId","tokenAddr":"$_id.tokenAddr",_id:0,bid:1}}
       ]).exec();
 
-        if(filterData){
+      let nft = await models.nftBidmodel.findOne({tokenId: String(req.body.tokenId) , tokenAddr: { '$regex' : '^'+req.body.tokenAddr+'$', "$options": "i" }}).lean().exec();
+        
+      if(filterData){
+          if(nft.selected && nft.selectedBidder){
+            Object.assign(filterData[0],{selected:nft.selected,selectedBidder:nft.selectedBidder})
+          }
           return res.status(200).json(filterData);
         }
         else{
