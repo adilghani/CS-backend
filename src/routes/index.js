@@ -152,6 +152,39 @@ routes.post("/verified_user",(req,res)=>{
       res.status(500).json({ message: "Some thing went wrong" , error:error.message});
     }
   })
+
+routes.get("/featured_user",(req, res) => {
+  var user=models.userModel.find({isOnFeatured: true});
+  user.exec()
+  .then((data)=>{
+    if(data.length>0){
+      res.status(200).json(data)
+    }
+    else{
+      res.status(400).json({message:"No any user is featured"})
+    }
+  })
+  .catch((err)=>res.status(500).json({ message: error.toString()}))
+})
+
+routes.post("/featured_user",(req,res)=>{
+    try{ 
+      if(!req.body.address || req.body.isOnFeatured == undefined){
+        res.status(500).json({message:"Parameters are wrong"})
+      }
+      else{
+        let update= models.userModel.findOneAndUpdate({address:{'$regex' : '^'+req.body.address+'$', "$options": "i"}},{
+          isOnFeatured: req.body.isOnFeatured
+        })
+        update.exec((err)=>{
+          if(err) throw err;
+          res.status(200).json({message:"Successfully Featured"})
+        })
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+    }
+  })
   
 routes.post("/auction_user",(req,res)=>{
     try{ 
@@ -1295,6 +1328,21 @@ routes.post("/get-nft-bid",async (req, res) => {
         }}
     else{
       res.status(500).json("Payload / Parameters Are Wrong!");
+    }
+  } catch (error) {
+  res.status(500).json({ message: "Some thing went wrong" , error:error.message});
+}
+})
+
+routes.get("/getAll-nft-bid",async (req, res) => {
+  try{
+      let nft = await models.nftBidmodel.find().lean().exec();
+        
+      if(nft.length>0){
+          return res.status(200).json(nft);
+      }
+      else{
+          return res.status(200).json("No NFT Found");
     }
   } catch (error) {
   res.status(500).json({ message: "Some thing went wrong" , error:error.message});

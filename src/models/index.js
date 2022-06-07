@@ -33,7 +33,8 @@ const userSchema = new mongoose.Schema({
   follower:Array,
   following:Array,
   auction:Boolean,
-  isVerified:{type:Boolean,default:false}
+  isVerified:{type:Boolean,default:false},
+  isOnFeatured:{type:Boolean,default:false}
 },{timestamps: true});
 
 const collectionSchema = new mongoose.Schema({
